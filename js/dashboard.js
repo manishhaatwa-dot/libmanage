@@ -1,143 +1,171 @@
 /**
  * ==========================================================================
- * LIBMANAGE SAAS ECOSYSTEM CORE ENGINE - CONFIGURATIONS & FIREBASE AUTH SYNC
+ * LIBMANAGE SAAS ECOSYSTEM CORE ENGINE - MULTI-TENANT CLOUD RECOVERY MODULE
  * ==========================================================================
  */
 
-// 1. Core Firebase Web App Configuration (Compat Mode Blueprint)
-const firebaseConfig = {
+// 1. Unified Multi-Tenant Cloud Architecture Parameters Base Configurations
+const unifiedFirebaseConfig = {
     apiKey: "AIzaSyCUe84QnEA5DY31DXtzM-7M4Xu5bSa8xO8",
-    authDomain: "://firebaseapp.com",
+    authDomain: "appointment-app-cb979.firebaseapp.com",
     projectId: "appointment-app-cb979",
     storageBucket: "appointment-app-cb979.firebasestorage.app",
     messagingSenderId: "596931961212",
     appId: "1:596931961212:web:6039e8f8ab4e759c9104f9"
 };
 
-// Safely boot single global instance wrapper to avoid console collisions
-if (!firebase.apps.length) {
-    firebase.initializeApp(firebaseConfig);
+// 2. Deterministic Singular Structural Global Bootstrapper Sequence Execution
+if (typeof firebase !== "undefined" && firebase.apps) {
+    if (!firebase.apps.length) {
+        firebase.initializeApp(unifiedFirebaseConfig);
+    }
+    // Expose one centralized global instance hook to clear Temporal Dead Zones (TDZ)
+    window.db = firebase.firestore();
+} else {
+    console.warn("[LibManage Core Engine Wait Warning]: Firebase SDK layers not detected on this context stack sequence. Ensure official script tags are loaded.");
 }
-const db = firebase.firestore(); // Centralized Cloud Firestore Hook
 
 document.addEventListener('DOMContentLoaded', () => {
+    if (typeof firebase === "undefined") {
+        console.error("Firebase SDK not loaded.");
+        return;
+    }
+
     bindGatewayAuthPipelines();
 });
 
 /**
- * Handles Realtime Multi-Tenant Authentication Gates for Admins & Students
+ * Handles Authentication Gateways Verification Routines Channels Loops
  */
 function bindGatewayAuthPipelines() {
     const studentForm = document.getElementById('student-login-form');
     const adminForm = document.getElementById('admin-login-form');
 
-    // ????? LEVEL 3: STUDENT LOGIN GATEWAY (Uses Unique Code + Seat Number verification)
+    // Local runtime extraction assertion mapping from centralized global instance
+    const db = window.db;
+
+    // ????? LEVEL 3: STUDENT PORTAL MULTI-TENANT VERIFICATION PATHWAY
     if (studentForm) {
         studentForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const tokenInput = document.getElementById('student-uid').value.trim().toUpperCase();
 
+            if (!db) {
+                alert("Database Engine Offline: Cloud storage hooks could not be fully initialized.");
+                return;
+            }
+
             try {
-                // Fetch group indices collection maps using Firestore Collection Group query profiles
+                // Execute deep lookup collection group scan matches across isolated tenant records
                 const studentQuerySnapshot = await db.collectionGroup("students")
                                                        .where("studentCode", "==", tokenInput)
                                                        .get();
 
                 if (studentQuerySnapshot.empty) {
-                    alert("Authentication Error: Provided Student Code not registered in our network databases.");
+                    alert("Authentication Error: Provided Unique Student Code not matching active network profiles indices.");
                     return;
                 }
 
-                // Extract verified entity document properties
-                const studentDoc = studentQuerySnapshot.docs[0];
-                const studentData = studentDoc.data();
+                // Extract parameters targets indices mappings keys parameters
+                const targetStudentDoc = studentQuerySnapshot.docs[0];
+                const studentData = targetStudentDoc.data();
                 const parentLibraryId = studentData.libraryId;
 
-                // Validate Parent Library Terminal node status before allowing workspace loads
-                const libraryDoc = await db.collection("saas_libraries").doc(parentLibraryId).get();
-                
-                if (!libraryDoc.exists) {
-                    alert("Infrastructure Error: Associated Library Branch profile not discovered.");
+                // Validate corresponding infrastructure terminal node configurations conditions state limits
+                const libraryDocSnapshot = await db.collection("saas_libraries").doc(parentLibraryId).get();
+
+                if (!libraryDocSnapshot.exists) {
+                    alert("Infrastructure Error: The associated library branch database instance has been deleted or moved.");
                     return;
                 }
 
-                const libData = libraryDoc.data();
-                if (libData.status !== "approved") {
-                    alert("Authorization Denied: This library node is currently awaiting system approval.");
+                const libraryMetadata = libraryDocSnapshot.data();
+
+                // Process sequential verification rules constraints properties fields states
+                if (libraryMetadata.status !== "approved") {
+                    alert("Access Blocked: Your parent library branch workspace registration is currently: AWAITING OWNER APPROVAL.");
                     return;
                 }
-                if (!libData.enabled) {
+
+                if (!libraryMetadata.enabled) {
                     alert("Access Suspended: This library branch network node is currently disabled by the owner. Contact admin.");
                     return;
                 }
 
-                // Grant Session Keys authorizations
+                 
+
+                // Authentication Authorization Confirmed - Lock routing environment parameters tokens properties maps
                 sessionStorage.setItem('session_role', 'student');
                 sessionStorage.setItem('session_user_code', studentData.studentCode);
-                sessionStorage.setItem('session_student_seat', studentData.seatNumber);
+                sessionStorage.setItem('session_student_seat', studentData.seatNumber || "");
                 sessionStorage.setItem('session_library_id', studentData.libraryId);
                 
-                const prefix = window.location.pathname.includes('/pages/') ? "" : "pages/";
-                window.location.href = `${prefix}student-dashboard.html`;
+                const pathPrefixModifier = window.location.pathname.includes('/pages/') ? "" : "pages/";
+                window.location.href = `${pathPrefixModifier}student-dashboard.html`;
 
             } catch (error) {
-                console.error("[Firestore Student Login Fault]:", error);
-                alert("Cloud sync failure. Verify network parameters link channels.");
+                console.error("[Ecosystem Student Auth Transaction Failure Logs Trace]:", error);
+                alert("Cloud system synchronization failure exception occurred: " + error.message);
             }
         });
     }
 
-    // ?? LEVEL 2: BRANCH ADMIN MULTI-TENANT LOGIN ENGINE
+    // ?? LEVEL 2: BRANCH ADMIN CONSOLE AUTHENTICATION PIPELINE ENGINE
     if (adminForm) {
         adminForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const emailInput = document.getElementById('admin-email').value.trim().toLowerCase();
             const passInput = document.getElementById('admin-password').value;
 
+            if (!db) {
+                alert("Database Engine Offline: Cloud storage hooks could not be fully initialized.");
+                return;
+            }
+
             try {
-                // Verify admin credentials straight against root saas_libraries documents metrics
+                // Execute direct index field query filtering across centralized root library nodes
                 const adminQuerySnapshot = await db.collection("saas_libraries")
-                                                   .where("adminEmail", "==", emailInput)
-                                                   .where("adminPass", "==", passInput)
-                                                   .get();
+                                                           .where("adminEmail", "==", emailInput)
+                                                           .where("adminPass", "==", passInput)
+                                                           .get();
 
                 if (adminQuerySnapshot.empty) {
                     alert("Security Check Failed: Invalid Admin Email ID or Password context configuration.");
                     return;
                 }
 
-                const matchedLibDoc = adminQuerySnapshot.docs[0];
-                const libData = matchedLibDoc.data();
+                const targetLibraryDoc = adminQuerySnapshot.docs[0];
+                const libraryData = targetLibraryDoc.data();
 
-                // Core Hierarchy State Restrictions checks
-                if (libData.status !== "approved") {
+                // Enforce structural operational policy rules verification parameters logs
+                if (libraryData.status !== "approved") {
                     alert("Access Restricted: Your library request terminal state is currently: PENDING APPROVAL.");
                     return;
                 }
 
-                if (!libData.enabled) {
+                if (!libraryData.enabled) {
                     alert("Access Suspended: Your branch terminal access has been disabled by the owner. Clear cash dues to resume.");
                     return;
                 }
 
-                // Admin Authorized Successfully - Freeze environment routing tokens context properties maps
+                // Branch Admin Authorization Verified Successfully - Freeze navigation session tracking vectors
                 sessionStorage.setItem('session_role', 'admin');
-                sessionStorage.setItem('session_library_id', libData.libraryId);
-                sessionStorage.setItem('session_library_name', libData.name);
+                sessionStorage.setItem('session_library_id', libraryData.libraryId);
+                sessionStorage.setItem('session_library_name', libraryData.name);
 
-                const prefix = window.location.pathname.includes('/pages/') ? "" : "pages/";
-                window.location.href = `${prefix}admin-dashboard.html`;
+                const pathPrefixModifier = window.location.pathname.includes('/pages/') ? "" : "pages/";
+                window.location.href = `${pathPrefixModifier}admin-dashboard.html`;
 
             } catch (error) {
-                console.error("[Firestore Admin Login Fault]:", error);
-                alert("Database transactional failure. Verify systems schemas configurations parameters logs.");
+                console.error("[Ecosystem Admin Auth Transaction Failure Logs Trace]:", error);
+                alert("Cloud system synchronization failure exception occurred: " + error.message);
             }
         });
     }
 }
 
 /**
- * Reusable Asynchronous UI Shell Loader Component Engine
+ * Reusable Asynchronous UI Fragment Layout Engine Integration Layer
  */
 async function loadSaaSLayoutComponent(containerId, componentUrl, callback = null) {
     const container = document.getElementById(containerId);
@@ -145,10 +173,11 @@ async function loadSaaSLayoutComponent(containerId, componentUrl, callback = nul
 
     try {
         const response = await fetch(componentUrl);
-        if (!response.ok) throw new Error(`Network failure code: ${response.status}`);
-        container.innerHTML = await response.text();
+        if (!response.ok) throw new Error("HTTP network transaction status fault code: " + response.status);
+        const templateHtmlStringPayload = await response.text();
+        container.innerHTML = templateHtmlStringPayload;
         if (callback) callback();
     } catch (err) {
-        console.error(`Layout Load Fault Component Fragment Error [${componentUrl}]:`, err);
+        console.error("[Ecosystem Layout Component Load Exception Error] Container Target [" + containerId + "] Asset [" + componentUrl + "]:", err);
     }
 }
