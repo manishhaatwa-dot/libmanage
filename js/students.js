@@ -360,7 +360,11 @@ async function commitStudentDirectoryMutationAction(event) {
             alert('Please fill all required student fields before saving.');
             return;
         }
-
+// Validate Expired Membership Status
+if (new Date(expiryDate) < new Date() && status === "Active") {
+    alert("Membership has already expired. Please change Status to 'Expired' or select a valid Expiry Date.");
+    return;
+}
         const isSeatOccupiedConflict = localBranchStudentsArray.some((std) => {
             if (existingStudentCode !== "" && std.studentCode === existingStudentCode) return false;
             return String(std.seatNumber || '').toUpperCase() === seatNumber;
@@ -370,7 +374,11 @@ async function commitStudentDirectoryMutationAction(event) {
             alert(`Validation Conflict: Seat "${seatNumber}" is already assigned to another student.`);
             return;
         }
-
+// Validate Membership Dates
+if (joiningDate > expiryDate) {
+    alert("Expiry Date cannot be earlier than Joining Date.");
+    return;
+}
         const isCreateMode = editIndexRawValue === "";
         let finalStudentUniqueTokenCode = existingStudentCode;
         const serverTimestamp = firebase.firestore.FieldValue.serverTimestamp();
