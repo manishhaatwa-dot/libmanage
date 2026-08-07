@@ -16,7 +16,7 @@
     <div class="gateway-container" style="margin: 15vh auto;">
         <!-- Brand Header -->
         <header class="gateway-header">
-            <h1>?? Owner Control Room</h1>
+            <h1>ðŸ”’ Owner Control Room</h1>
             <p>SaaS Network Master Entry Terminal</p>
         </header>
 
@@ -33,7 +33,7 @@
                     </div>
                     <div class="form-group">
                         <label for="manager-password-input">Master Password</label>
-                        <input type="password" id="manager-password-input" placeholder="••••••••" required autocomplete="current-password">
+                        <input type="password" id="manager-password-input" placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢" required autocomplete="current-password">
                     </div>
                     <button type="submit" class="btn-gateway-submit btn-manager-override">Execute Authorization</button>
                 </form>
@@ -41,14 +41,31 @@
         </div>
     </div>
 
-    <!-- Firebase Compat SDK Web Tags Integration Blueprint -->
+    <!-- STEP 1: Load Firebase Core Compat Core SDK Libraries FIRST -->
     <script src="https://gstatic.com"></script>
     <script src="https://gstatic.com"></script>
 
-    <!-- Shared Framework Config Engine Loader -->
-    <script src="../js/dashboard.js"></script>
+    <!-- STEP 2: Strict Synchronous Deterministic Bootstrapper Logic -->
     <script>
-        // Standalone login route execution - Authenticates straight against live cloud structures
+        // Universal Firebase App App Config
+        const runtimeFirebaseConfig = {
+            apiKey: "AIzaSyCUe84QnEA5DY31DXtzM-7M4Xu5bSa8xO8",
+            authDomain: "://firebaseapp.com",
+            projectId: "appointment-app-cb979",
+            storageBucket: "appointment-app-cb979.firebasestorage.app",
+            messagingSenderId: "596931961212",
+            appId: "1:596931961212:web:6039e8f8ab4e759c9104f9"
+        };
+
+        // Guaranteed Initialization Sequence before ANY execution reference occurs
+        if (!firebase.apps.length) {
+            firebase.initializeApp(runtimeFirebaseConfig);
+        }
+        
+        // Window-bound global isolation instantiation to safely clear temporal dead zones (TDZ)
+        window.dbInstance = firebase.firestore();
+
+        // Bind form capture directly after explicit instance confirmation loop
         document.getElementById('manager-standalone-login-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             
@@ -56,18 +73,17 @@
             const passwordInput = document.getElementById('manager-password-input').value.trim();
 
             try {
-                // Fetch credentials document path context directly from owner master nodes data block schemas
-                const ownerSnapshot = await db.collection("saas_owner").doc("master").get();
+                // Execute atomic read from explicit windows scoped connection reference
+                const ownerSnapshot = await window.dbInstance.collection("saas_owner").doc("master").get();
 
                 if (!ownerSnapshot.exists) {
-                    // Seed master node configurations parameters safely on first transaction hit if non-existent
                     const baselineOwnerCredentialsSeed = {
                         email: "manager@gmail.com",
                         password: "owner@99",
                         role: "super_manager"
                     };
-                    await db.collection("saas_owner").doc("master").set(baselineOwnerCredentialsSeed);
-                    alert("System Baseline Config Bootstrapped. Re-submit to authorize.");
+                    await window.dbInstance.collection("saas_owner").doc("master").set(baselineOwnerCredentialsSeed);
+                    alert("System Baseline Config Bootstrapped to Firestore Cloud Document. Re-submit credentials to log in.");
                     return;
                 }
 
@@ -81,8 +97,8 @@
                 }
 
             } catch (error) {
-                console.error("[Firestore Manager Auth Pipeline Fault]:", error);
-                alert("Could not connect to Firebase Cloud Database. Check your internet link parameters.");
+                console.error("[Firestore Manager Isolated Auth Fault]:", error);
+                alert("Firestore Transaction Failed: Check rules permissions or console tracking logs.");
             }
         });
     </script>
