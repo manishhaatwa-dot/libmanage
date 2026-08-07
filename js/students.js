@@ -281,7 +281,7 @@ async function generateNextStudentCode() {
     try {
         const numericIds = localBranchStudentsArray
             .map((student) => String(student.studentCode || '').trim().toUpperCase())
-            .filter((code) => /^LIBd+$/.test(code))
+            .filter((code) => /^LIB\d+$/.test(code))
             .map((code) => parseInt(code.replace('LIB', ''), 10))
             .filter((num) => !isNaN(num));
 
@@ -404,12 +404,20 @@ async function commitStudentDirectoryMutationAction(event) {
             }
         }
 
-        await db.collection("saas_libraries")
-            .doc(currentActiveBranchId)
-            .collection("students")
-            .doc(finalStudentUniqueTokenCode)
-            .set(payloadStudentModel, { merge: true });
+       const studentRef = db.collection("saas_libraries")
+    .doc(currentActiveBranchId)
+    .collection("students")
+    .doc(finalStudentUniqueTokenCode);
 
+if (isCreateMode) {
+
+    await studentRef.set(payloadStudentModel);
+
+} else {
+
+    await studentRef.set(payloadStudentModel, { merge: true });
+
+}
         console.log(`[Firestore Transaction SUCCESS]: Written student profile document -> ${finalStudentUniqueTokenCode}`);
         triggerStudentFormModalClose();
     } catch (error) {
