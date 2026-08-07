@@ -3,138 +3,161 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Library Terminal - Attendance Control</title>
+    <title>Library Terminal - Attendance</title>
+
     <!-- Google Fonts -->
-    <link rel="preconnect" href="https://googleapis.com">
-    <link rel="preconnect" href="https://gstatic.com" crossorigin>
-    <link href="https://googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Global Style -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Global CSS -->
     <link rel="stylesheet" href="../css/style.css">
-    <!-- Attendance Custom Style -->
+
+    <!-- Attendance CSS -->
     <link rel="stylesheet" href="../css/attendance.css">
 </head>
+
 <body>
 
-    <div class="app-container">
-        <!-- Dynamic Sidebar Container -->
-        <div id="sidebar-container"></div>
+<div class="app-container">
 
-        <div class="main-content">
-            <!-- Dynamic Navbar Container -->
-            <div id="navbar-container"></div>
+    <!-- Sidebar -->
+    <div id="sidebar-container"></div>
 
-            <main class="content-body">
-                <!-- Navigation Tabs between marking and analytical checking -->
-                <div class="attendance-tabs">
-                    <button class="tab-btn active" id="tab-mark-trigger">Mark Daily Attendance</button>
-                    <button class="tab-btn" id="tab-history-trigger">Attendance Analytics & History</button>
+    <div class="main-content">
+
+        <!-- Navbar -->
+        <div id="navbar-container"></div>
+
+        <main class="content-body">
+
+            <!-- Page Header -->
+            <div class="students-header">
+
+                <div class="header-titles">
+                    <h1>Attendance Register</h1>
+
+                    <p>
+                        Mark daily attendance for all registered
+                        library students.
+                    </p>
                 </div>
 
-                <!-- SECTION 1: LIVE DAILY MARKING INTERFACE -->
-                <div id="section-mark-attendance" class="attendance-section display-active">
-                    <div class="section-title-wrapper">
-                        <div>
-                            <h2>Live Attendance Sheet</h2>
-                            <p>Registers reset automatically daily. Changes are auto-saved to secure relational database tables.</p>
-                        </div>
-                        <div class="live-date-control">
-                            <span class="calendar-icon">??</span>
-                            <span id="marking-current-date">Loading...</span>
-                        </div>
-                    </div>
+                <button
+                    class="add-student-trigger"
+                    id="save-attendance-btn">
 
-                    <div class="attendance-table-card glass">
-                        <div class="table-scroll-container">
-                            <table class="attendance-data-table">
-                                <thead>
-                                    <tr>
-                                        <th>Unique Code</th>
-                                        <th>Seat</th>
-                                        <th>Student Name</th>
-                                        <th>Class Module</th>
-                                        <th class="center-header">Current Selection Status</th>
-                                        <th class="actions-header-right">Quick Actions Matrix</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="attendance-marking-rows">
-                                    <!-- Dynamic rows loaded via JS -->
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
+                    Save Attendance
+
+                </button>
+
+            </div>
+            <!-- Top Control Panel -->
+            <div class="search-filter-panel glass">
+
+                <div class="search-box">
+                    <input
+                        type="text"
+                        id="attendance-search-input"
+                        placeholder="Search by Student Name, Code or Seat...">
                 </div>
 
-                <!-- SECTION 2: ARCHIVAL FILTER & METRIC REPORTS -->
-                <div id="section-attendance-history" class="attendance-section">
-                    <div class="history-controls-panel glass">
-                        <div class="filter-group">
-                            <label for="history-preset-filter">Time Frame Filter</label>
-                            <select id="history-preset-filter">
-                                <option value="today">Today</option>
-                                <option value="yesterday">Yesterday</option>
-                                <option value="weekly">Past 7 Days (Weekly)</option>
-                                <option value="monthly">This Month (Monthly)</option>
-                                <option value="yearly">This Year (Yearly)</option>
-                                <option value="custom">Custom Date Selection</option>
-                            </select>
-                        </div>
+                <div class="filter-actions">
 
-                        <div class="filter-group hide-element" id="custom-date-inputs">
-                            <label for="history-custom-date">Select Custom Date</label>
-                            <input type="date" id="history-custom-date">
-                        </div>
+                    <div class="form-group">
+                        <label for="attendance-date">
+                            Attendance Date
+                        </label>
 
-                        <div class="filter-group">
-                            <label for="history-student-search">Filter Student Wise</label>
-                            <input type="text" id="history-student-search" placeholder="Search by name, unique code, or seat...">
-                        </div>
+                        <input
+                            type="date"
+                            id="attendance-date">
                     </div>
 
-                    <!-- Analytical Summary Metrics Grid -->
-                    <div class="analytics-summary-grid">
-                        <div class="analytic-card glass">
-                            <h4>Avg Attendance %</h4>
-                            <p id="metric-avg-percentage">0%</p>
-                        </div>
-                        <div class="analytic-card glass">
-                            <h4>Total Present Logs</h4>
-                            <p id="metric-total-p">0</p>
-                        </div>
-                        <div class="analytic-card glass">
-                            <h4>Total Absent Logs</h4>
-                            <p id="metric-total-a">0</p>
-                        </div>
-                    </div>
-
-                    <div class="attendance-table-card glass">
-                        <div class="table-scroll-container">
-                            <table class="attendance-data-table">
-                                <thead>
-                                    <tr>
-                                        <th>Log Date</th>
-                                        <th>Unique Code</th>
-                                        <th>Seat Number</th>
-                                        <th>Student Name</th>
-                                        <th>Class Module</th>
-                                        <th>Status Value</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="attendance-history-rows">
-                                    <!-- Historical aggregate entries inserted dynamically -->
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
                 </div>
+
+            </div>
+            <!-- Attendance Table -->
+            <div class="students-table-card glass">
+
+                <div class="table-scroll-container">
+
+                    <table class="students-data-table">
+
+                        <thead>
+
+                            <tr>
+
+                                <th>Student Code</th>
+                                <th>Seat</th>
+                                <th>Student Name</th>
+                                <th>Class</th>
+                                <th>Status</th>
+
+                            </tr>
+
+                        </thead>
+
+                        <tbody id="attendance-table-body">
+
+                            <!-- Dynamic Attendance Rows -->
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
             </main>
 
-            <!-- Dynamic Footer Container -->
-            <div id="footer-container"></div>
-        </div>
+        <!-- Footer -->
+        <div id="footer-container"></div>
+
     </div>
 
-    <!-- Framework Engine Scripts -->
-    <script src="../js/dashboard.js"></script>
-    <script src="../js/attendance.js"></script>
+</div>
+<!-- Attendance Modal (Future Use) -->
+<div
+    class="modal-overlay"
+    id="attendance-modal">
+
+    <div class="modal-window glass">
+
+        <div class="modal-header">
+
+            <h2>Attendance Details</h2>
+
+            <button
+                class="close-modal-btn"
+                id="close-attendance-modal">
+
+                ×
+
+            </button>
+
+        </div>
+
+        <div class="modal-form">
+
+            <p>
+                Future attendance features will be added here.
+            </p>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- Shared Core -->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+<script src="../js/dashboard.js"></script>
+
+<!-- Attendance -->
+<script src="../js/attendance.js"></script>
+
 </body>
 </html>
