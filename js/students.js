@@ -277,7 +277,7 @@ async function generateNextStudentCode() {
     try {
         const numericIds = localBranchStudentsArray
             .map((student) => String(student.studentCode || '').trim().toUpperCase())
-            .filter((code) => /^LIBd+$/.test(code))
+            .filter((code) => /^LIB\d+$/.test(code))
             .map((code) => parseInt(code.replace('LIB', ''), 10))
             .filter((num) => !isNaN(num));
 
@@ -295,7 +295,7 @@ async function generateNextStudentCode() {
             nextNumber += 1;
             nextCode = `LIB${String(nextNumber).padStart(3, '0')}`;
         }
-
+console.log("Generated Code =>", nextCode);
         const existingDoc = await db.collection("saas_libraries")
             .doc(currentActiveBranchId)
             .collection("students")
@@ -320,8 +320,9 @@ async function generateNextStudentCode() {
                 }
             } while (true);
         }
-
-        return nextCode;
+console.log("Returning Code =>", nextCode);
+return nextCode;
+        
     } catch (error) {
         console.error('[generateNextStudentCode error]:', error);
         throw error;
