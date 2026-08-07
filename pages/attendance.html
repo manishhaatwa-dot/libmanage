@@ -55,15 +55,22 @@
             <!-- Top Control Panel -->
             <div class="search-filter-panel glass">
 
-                <div class="search-box">
-                    <input
-                        type="text"
-                        id="attendance-search-input"
-                        placeholder="Search by Student Name, Code or Seat...">
-                </div>
+              <div class="search-box">
+    <input
+        type="text"
+        id="attendance-search-input"
+        placeholder="Search by Student Name, Code or Seat...">
+</div>
 
-                <div class="filter-actions">
+<button
+    id="save-attendance-btn"
+    class="btn-primary">
 
+    Save Attendance
+
+</button>
+
+<div class="filter-actions">
                     <div class="form-group">
                         <label for="attendance-date">
                             Attendance Date
@@ -84,19 +91,15 @@
 
                     <table class="students-data-table">
 
-                        <thead>
-
-                            <tr>
-
-                                <th>Student Code</th>
-                                <th>Seat</th>
-                                <th>Student Name</th>
-                                <th>Class</th>
-                                <th>Status</th>
-
-                            </tr>
-
-                        </thead>
+                       <thead>
+ <tr>
+    <th>Student Code</th>
+    <th>Seat</th>
+    <th>Student Name</th>
+    <th>Present</th>
+    <th>Absent</th>
+</tr>
+</thead>
 
                         <tbody id="attendance-table-body">
 
