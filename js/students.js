@@ -29,11 +29,7 @@ function initializeStudentDirectoryModule() {
     try {
         currentActiveBranchId = sessionStorage.getItem('session_library_id');
 
-        const db = window.db;
-        if (!db) {
-            alert("Database Engine Offline: Unified cloud storage reference mapping missing.");
-            return;
-        }
+        const db = firebase.firestore();
 
         const searchInput = document.getElementById('student-search-input');
         const openModalBtn = document.getElementById('open-add-modal-btn');
@@ -281,7 +277,7 @@ async function generateNextStudentCode() {
     try {
         const numericIds = localBranchStudentsArray
             .map((student) => String(student.studentCode || '').trim().toUpperCase())
-            .filter((code) => /^LIB\d+$/.test(code))
+            .filter((code) => /^LIBd+$/.test(code))
             .map((code) => parseInt(code.replace('LIB', ''), 10))
             .filter((num) => !isNaN(num));
 
@@ -293,10 +289,7 @@ async function generateNextStudentCode() {
 
         let nextCode = `LIB${String(nextNumber).padStart(3, '0')}`;
 
-        const db = window.db;
-        if (!db) {
-            throw new Error('Database Engine Offline');
-        }
+        const db = firebase.firestore();
 
         while (localBranchStudentsArray.some((student) => String(student.studentCode).toUpperCase() === nextCode)) {
             nextNumber += 1;
@@ -339,11 +332,7 @@ async function commitStudentDirectoryMutationAction(event) {
     event.preventDefault();
 
     try {
-        const db = window.db;
-        if (!db) {
-            alert("Database Engine Offline: Cloud transactions cannot process without active global mappings.");
-            return;
-        }
+        const db = firebase.firestore();
 
         const editIndexRawValue = document.getElementById('form-edit-index')?.value || "";
         const existingStudentCode = document.getElementById('form-student-code')?.value || "";
@@ -360,11 +349,13 @@ async function commitStudentDirectoryMutationAction(event) {
             alert('Please fill all required student fields before saving.');
             return;
         }
-// Validate Expired Membership Status
-if (new Date(expiryDate) < new Date() && status === "Active") {
-    alert("Membership has already expired. Please change Status to 'Expired' or select a valid Expiry Date.");
-    return;
-}
+
+        // Validate Expired Membership Status
+        if (new Date(expiryDate) < new Date() && status === "Active") {
+            alert("Membership has already expired. Please change Status to 'Expired' or select a valid Expiry Date.");
+            return;
+        }
+
         const isSeatOccupiedConflict = localBranchStudentsArray.some((std) => {
             if (existingStudentCode !== "" && std.studentCode === existingStudentCode) return false;
             return String(std.seatNumber || '').toUpperCase() === seatNumber;
@@ -374,11 +365,13 @@ if (new Date(expiryDate) < new Date() && status === "Active") {
             alert(`Validation Conflict: Seat "${seatNumber}" is already assigned to another student.`);
             return;
         }
-// Validate Membership Dates
-if (joiningDate > expiryDate) {
-    alert("Expiry Date cannot be earlier than Joining Date.");
-    return;
-}
+
+        // Validate Membership Dates
+        if (joiningDate > expiryDate) {
+            alert("Expiry Date cannot be earlier than Joining Date.");
+            return;
+        }
+
         const isCreateMode = editIndexRawValue === "";
         let finalStudentUniqueTokenCode = existingStudentCode;
         const serverTimestamp = firebase.firestore.FieldValue.serverTimestamp();
@@ -412,20 +405,17 @@ if (joiningDate > expiryDate) {
             }
         }
 
-       const studentRef = db.collection("saas_libraries")
-    .doc(currentActiveBranchId)
-    .collection("students")
-    .doc(finalStudentUniqueTokenCode);
+        const studentRef = db.collection("saas_libraries")
+            .doc(currentActiveBranchId)
+            .collection("students")
+            .doc(finalStudentUniqueTokenCode);
 
-if (isCreateMode) {
+        if (isCreateMode) {
+            await studentRef.set(payloadStudentModel);
+        } else {
+            await studentRef.set(payloadStudentModel, { merge: true });
+        }
 
-    await studentRef.set(payloadStudentModel);
-
-} else {
-
-    await studentRef.set(payloadStudentModel, { merge: true });
-
-}
         console.log(`[Firestore Transaction SUCCESS]: Written student profile document -> ${finalStudentUniqueTokenCode}`);
         triggerStudentFormModalClose();
     } catch (error) {
@@ -477,11 +467,7 @@ window.routeProfileToEditPipeline = function(studentCodeToken) {
 
 window.routeProfileToDeletePipeline = async function(studentCodeToken) {
     try {
-        const db = window.db;
-        if (!db) {
-            alert("Database Engine Offline: Cloud transactions cannot process without active global mappings.");
-            return;
-        }
+        const db = firebase.firestore();
 
         if (!studentCodeToken) {
             alert('Invalid student code.');
