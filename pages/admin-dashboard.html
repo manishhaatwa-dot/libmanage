@@ -1,187 +1,373 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Library Console - Dashboard</title>
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://googleapis.com">
-    <link rel="preconnect" href="https://gstatic.com" crossorigin>
-    <link href="https://googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Global CSS -->
+
+    <title>Library Admin Dashboard</title>
+
+    <!-- Google Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+
+    <!-- CSS -->
     <link rel="stylesheet" href="../css/style.css">
-    <!-- Dashboard Specific CSS Blueprint -->
     <link rel="stylesheet" href="../css/dashboard.css">
 </head>
+
 <body>
 
-    <div class="app-container">
-        <!-- Dynamic Sidebar Injection Link -->
-        <div id="sidebar-container"></div>
+<div class="app-container">
 
-        <div class="main-content">
-            <!-- Dynamic Navbar Injection Link -->
-            <div id="navbar-container"></div>
+    <!-- Sidebar -->
+    <div id="sidebar-container"></div>
 
-            <!-- Main Content Area Body -->
-            <main class="content-body">
-                <!-- Welcome Title & Dynamic Controls Header -->
-                <div class="dashboard-header">
-                    <div class="welcome-text">
-                        <h1 id="welcome-admin-title">Welcome, Branch Admin</h1>
-                        <p>Operational control center for your library branch terminal node.</p>
-                    </div>
-                    <div class="date-badge">
-                        <span class="icon">??</span>
-                        <span id="live-date">Loading...</span>
-                    </div>
+    <div class="main-content">
+
+        <!-- Navbar -->
+        <div id="navbar-container"></div>
+
+        <main class="content-body">
+
+            <!-- Header -->
+            <div class="dashboard-header">
+
+                <div class="welcome-text">
+
+                    <h1 id="welcome-admin-title">
+                        Library Admin Dashboard
+                    </h1>
+
+                    <p id="welcome-admin-subtitle">
+                        Manage your complete library from one place.
+                    </p>
+
                 </div>
 
-                <!-- Stats Grid Layout (Glassmorphism Metric Cards) -->
-                <div class="stats-grid">
-                    <!-- Total Strength Box With Live Manual Configuration Input Form Inside -->
-                    <div class="stat-card glass">
-                        <div class="stat-icon strength">??</div>
-                        <div class="stat-info" style="width: 100%;">
-                            <h3>Total Seat Strength</h3>
-                            <div class="strength-control-wrapper" style="display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; margin-top: 0.2rem;">
-                                <span class="stat-number" id="total-strength-val" style="font-size: 1.6rem;">0</span>
-                                <div id="strength-display-actions">
-                                    <button class="ops-header-action" id="trigger-strength-edit-btn" style="padding: 0.2rem 0.5rem; font-size: 0.75rem;">?? Edit</button>
-                                </div>
-                                <form id="strength-modifier-inline-form" class="hide-element" style="display: flex; align-items: center; gap: 0.25rem;">
-                                    <input type="number" id="input-manual-strength" min="5" max="500" style="width: 70px; padding: 0.3rem; font-size: 0.85rem; border-radius: 4px; border: 1px solid rgba(0,0,0,0.15);" required>
-                                    <button type="submit" style="background:#10b981; color:#fff; border:none; padding:0.3rem 0.5rem; border-radius:4px; font-size:0.75rem; font-weight:700; cursor:pointer;">Save</button>
-                                </form>
-                            </div>
-                        </div>
+            </div>
+
+            <!-- Top Cards -->
+
+            <div class="stats-grid">
+
+                <!-- Total Seat Strength -->
+
+                <div class="stat-card glass">
+
+                    <div class="stat-icon strength">
+                        ??
                     </div>
-                    <div class="stat-card glass">
-                        <div class="stat-icon present">?</div>
-                        <div class="stat-info">
-                            <h3>Present Today</h3>
-                            <p class="stat-number" id="present-today-val">0</p>
+
+                    <div class="stat-info" style="width:100%;">
+
+                        <h3>Total Seat Strength</h3>
+
+                        <div class="strength-control-wrapper"
+                            style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+
+                            <span
+                                class="stat-number"
+                                id="total-strength-val">
+
+                                0
+
+                            </span>
+
+                            <button
+                                id="trigger-strength-edit-btn"
+                                class="ops-header-action">
+
+                                Edit
+
+                            </button>
+
+                            <form
+                                id="strength-modifier-inline-form"
+                                class="hide-element"
+                                style="display:none;align-items:center;gap:6px;">
+
+                                <input
+                                    type="number"
+                                    id="input-manual-strength"
+                                    min="5"
+                                    max="500"
+                                    required>
+
+                                <button
+                                    type="submit">
+
+                                    Save
+
+                                </button>
+
+                            </form>
+
                         </div>
+
                     </div>
-                    <div class="stat-card glass">
-                        <div class="stat-icon absent">?</div>
-                        <div class="stat-info">
-                            <h3>Absent Today</h3>
-                            <p class="stat-number" id="absent-today-val">0</p>
-                        </div>
-                    </div>
-                    <div class="stat-card glass">
-                        <div class="stat-icon seats">??</div>
-                        <div class="stat-info">
-                            <h3>Available Seats</h3>
-                            <p class="stat-number" id="available-seats-val">0</p>
-                        </div>
-                    </div>
+
                 </div>
 
-                <!-- Splitted Lower Action Panels -->
-                <div class="dashboard-split">
-                    <!-- Left Section Column -->
-                    <div class="split-left">
-                        <div class="panel-card glass">
-                            <h2>Quick Branch Actions</h2>
-                            <div class="action-buttons-grid">
-                                <a href="students.html" class="action-btn btn-primary">
-                                    <span class="btn-icon">??</span> Manage Students
-                                </a>
-                                <a href="attendance.html" class="action-btn btn-secondary">
-                                    <span class="btn-icon">??</span> Mark Attendance
-                                </a>
-                                <a href="seats.html" class="action-btn btn-accent">
-                                    <span class="btn-icon">???</span> Seat Matrix Map
-                                </a>
-                            </div>
+                <!-- Present -->
+
+                <div class="stat-card glass">
+
+                    <div class="stat-icon present">
+                        ?
+                    </div>
+
+                    <div class="stat-info">
+
+                        <h3>Present Today</h3>
+
+                        <p
+                            class="stat-number"
+                            id="present-today-val">
+
+                            0
+
+                        </p>
+
+                    </div>
+
+                </div>
+
+                <!-- Absent -->
+
+                <div class="stat-card glass">
+
+                    <div class="stat-icon absent">
+                        ?
+                    </div>
+
+                    <div class="stat-info">
+
+                        <h3>Absent Today</h3>
+
+                        <p
+                            class="stat-number"
+                            id="absent-today-val">
+
+                            0
+
+                        </p>
+
+                    </div>
+
+                </div>
+
+                <!-- Available Seats -->
+
+                <div class="stat-card glass">
+
+                    <div class="stat-icon seats">
+                        ??
+                    </div>
+
+                    <div class="stat-info">
+
+                        <h3>Available Seats</h3>
+
+                        <p
+                            class="stat-number"
+                            id="available-seats-val">
+
+                            0
+
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- Bottom Layout -->
+
+            <div class="dashboard-split">
+
+                <div class="split-left">
+<!-- Left Panel -->
+
+                    <div class="panel-card glass">
+
+                        <h2>Quick Branch Actions</h2>
+
+                        <div class="action-buttons-grid">
+
+                            <a href="students.html" class="action-btn btn-primary">
+                                <span class="btn-icon">?????</span>
+                                Manage Students
+                            </a>
+
+                            <a href="attendance.html" class="action-btn btn-secondary">
+                                <span class="btn-icon">??</span>
+                                Mark Attendance
+                            </a>
+
+                            <a href="seats.html" class="action-btn btn-accent">
+                                <span class="btn-icon">??</span>
+                                Seat Matrix Map
+                            </a>
+
                         </div>
 
-                        <div class="panel-card glass">
+                    </div>
+
+                    <!-- Recent Notices -->
+
+                    <div class="panel-card glass">
+
+                        <div style="display:flex;justify-content:space-between;align-items:center;">
+
                             <h2>Recent Notice Updates</h2>
-                            <div class="notification-list" id="recent-notices-container">
-                                <!-- Dynamic branch notices loaded via script core -->
-                            </div>
+
+                            <button
+                                id="btn-add-notice"
+                                class="ops-header-action">
+
+                                + Add Notice
+
+                            </button>
+
                         </div>
+
+                        <div
+                            class="notification-list"
+                            id="recent-notices-container">
+
+                        </div>
+
                     </div>
 
-                    <!-- Right Section Column -->
-                    <div class="split-right">
-                        <div class="panel-card glass">
-                            <h2>Today's Attendance Logs</h2>
-                            <div class="log-table-wrapper">
-                                <table class="dashboard-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Seat No</th>
-                                            <th>Student Name</th>
-                                            <th>Status</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="recent-attendance-rows">
-                                        <!-- Realtime rows list mapped automatically -->
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
                 </div>
-            </main>
 
-            <!-- Dynamic Footer Injection Link -->
-            <div id="footer-container"></div>
-        </div>
+                <!-- Right Panel -->
+
+                <div class="split-right">
+
+                    <div class="panel-card glass">
+
+                        <h2>Today's Attendance Logs</h2>
+
+                        <div class="log-table-wrapper">
+
+                            <table class="dashboard-table">
+
+                                <thead>
+
+                                    <tr>
+
+                                        <th>Seat No</th>
+
+                                        <th>Student Name</th>
+
+                                        <th>Status</th>
+
+                                    </tr>
+
+                                </thead>
+
+                                <tbody id="recent-attendance-rows">
+
+                                </tbody>
+
+                            </table>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </main>
+
+        <!-- Footer -->
+
+        <div id="footer-container"></div>
+
     </div>
 
-    <!-- Firebase Compat SDK Script Layers Integration -->
-    <script src="https://gstatic.com"></script>
-    <script src="https://gstatic.com"></script>
+</div>
 
-    <!-- Core Runtime Execution Router Script Logic Core -->
-    <script src="../js/dashboard.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', async () => {
-            // 1. Session verification gateway check
-            if (sessionStorage.getItem('session_role') !== 'admin') {
-                window.location.href = "../index.html";
-                return;
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+<!-- Shared Core -->
+<script src="../js/dashboard.js"></script>
+
+<!-- Admin Dashboard Logic -->
+<script src="../js/dashboard.js"></script>
+
+<script>
+
+document.addEventListener("DOMContentLoaded", async () => {
+
+    // Session Check
+    if (sessionStorage.getItem("session_role") !== "admin") {
+        window.location.href = "../index.html";
+        return;
+    }
+
+    const libraryName =
+        sessionStorage.getItem("session_library_name") || "Library";
+
+    const title =
+        document.getElementById("welcome-admin-title");
+
+    if (title) {
+        title.innerText = libraryName;
+    }
+
+    const subtitle =
+        document.getElementById("welcome-admin-subtitle");
+
+    if (subtitle) {
+        subtitle.innerText =
+            "Library Admin Dashboard";
+    }
+
+    // Load Layout Components
+
+    if (typeof loadSaaSLayoutComponent === "function") {
+
+        await loadSaaSLayoutComponent(
+            "sidebar-container",
+            "../components/sidebar.html",
+            () => {
+                if (typeof handleSidebarActivation === "function") {
+                    handleSidebarActivation();
+                }
             }
+        );
 
-            const activeLibraryId = sessionStorage.getItem('session_library_id');
-            const activeLibraryName = sessionStorage.getItem('session_library_name');
-
-            // 2. Trigger async shared framework component loaders engine layers
-            await loadSaaSLayoutComponent('sidebar-container', '../components/sidebar.html', () => handleSidebarActivation());
-            await loadSaaSLayoutComponent('navbar-container', '../components/navbar.html', () => bindNavbarInteractions());
-            await loadSaaSLayoutComponent('footer-container', '../components/footer.html');
-
-            // 3. Mount real-time operational calculations engine data context listeners
-            setupRealtimeBranchDashboardOverview(activeLibraryId, activeLibraryName);
-        });
-
-        /**
-         * Hooks real-time document listeners to Firestore collections
-         */
-        function setupRealtimeBranchDashboardOverview(libId, libName) {
-            // Live Date setup
-            const dateDisplay = document.getElementById('live-date');
-            if (dateDisplay) {
-                const options = { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' };
-                dateDisplay.innerText = new Date().toLocaleDateString('en-US', options);
+        await loadSaaSLayoutComponent(
+            "navbar-container",
+            "../components/navbar.html",
+            () => {
+                if (typeof bindNavbarInteractions === "function") {
+                    bindNavbarInteractions();
+                }
             }
+        );
 
-            // Sync top header label titles
-            if (document.getElementById('nav-library-name')) document.getElementById('nav-library-name').innerText = libName;
-            if (document.getElementById('welcome-admin-title')) document.getElementById('welcome-admin-title').innerText = `Welcome, Admin of ${libName}`;
+        await loadSaaSLayoutComponent(
+            "footer-container",
+            "../components/footer.html"
+        );
 
-            // A. Realtime listener for Library Configuration details (Manual seats capacity strength)
-            db.collection("saas_libraries").doc(libId).onSnapshot((libDoc) => {
-                if (!libDoc.exists) return;
-                const libData = libDoc.data();
-                const currentTotalSeats = libData.totalSeats;
-                
-                document.getElementById('total-strength-val').innerText = currentTotalSeats;
+    }
 
-                // Bind elements click toggles hooks for modifications
-                const btnTriggerEdit = document.getElementById('trigger-strength-edit-btn');
+});
+
+</script>
+
+</body>
+</html>
