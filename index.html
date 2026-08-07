@@ -4,16 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LibManage SaaS - Universal Gateway</title>
+
     <!-- Google Fonts -->
-    <link rel="preconnect" href="https://googleapis.com">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
     <!-- Base Styling -->
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
     <div class="gateway-container">
+
         <!-- Brand Header -->
         <header class="gateway-header">
             <h1>?? LibManage SaaS</h1>
@@ -28,65 +31,96 @@
 
         <!-- Card Section -->
         <div class="gateway-card glass">
-            
-            <!-- STUDENT PANEL: LOGIN VIA UNIQUE CODE ONLY -->
+
+            <!-- Student Panel -->
             <div id="panel-student" class="auth-panel active">
                 <h2>Student Portal</h2>
-                <p class="panel-subtitle">Enter your unique identity token assigned by your library admin.</p>
+                <p class="panel-subtitle">
+                    Enter your unique identity token assigned by your library admin.
+                </p>
+
                 <form id="student-login-form">
                     <div class="form-group">
                         <label for="student-uid">Unique Student Code</label>
-                        <input type="text" id="student-uid" placeholder="e.g., LIB101-ST89" required autocomplete="off">
+                        <input
+                            type="text"
+                            id="student-uid"
+                            placeholder="e.g. LIB101-ST89"
+                            required
+                            autocomplete="off">
                     </div>
-                    <button type="submit" class="btn-gateway-submit">Verify & Enter</button>
+
+                    <button type="submit" class="btn-gateway-submit">
+                        Verify & Enter
+                    </button>
                 </form>
             </div>
 
-            <!-- ADMIN PANEL: MULTI-TENANT LOGIN -->
+            <!-- Admin Panel -->
             <div id="panel-admin" class="auth-panel">
                 <h2>Admin Console</h2>
-                <p class="panel-subtitle">Manage seats, attendance, and registers for your library branch.</p>
+                <p class="panel-subtitle">
+                    Manage seats, attendance and registers for your library branch.
+                </p>
+
                 <form id="admin-login-form">
                     <div class="form-group">
                         <label for="admin-email">Registered Email ID</label>
-                        <input type="email" id="admin-email" placeholder="admin@yourlibrary.com" required autocomplete="username">
+                        <input
+                            type="email"
+                            id="admin-email"
+                            placeholder="admin@yourlibrary.com"
+                            required
+                            autocomplete="username">
                     </div>
+
                     <div class="form-group">
                         <label for="admin-password">Password</label>
-                        <input type="password" id="admin-password" placeholder="••••••••" required autocomplete="current-password">
+                        <input
+                            type="password"
+                            id="admin-password"
+                            placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
+                            required
+                            autocomplete="current-password">
                     </div>
-                    <button type="submit" class="btn-gateway-submit">Secure Login</button>
+
+                    <button type="submit" class="btn-gateway-submit">
+                        Secure Login
+                    </button>
                 </form>
             </div>
 
         </div>
+
     </div>
 
-    <!-- Firebase Compat SDK Web Tags Integration Blueprint -->
-    <script src="https://gstatic.com"></script>
-    <script src="https://gstatic.com"></script>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
-    <!-- Initialization Engine -->
+    <!-- Shared Core -->
     <script src="js/dashboard.js"></script>
-    <script>
-        const tabStudent = document.getElementById('tab-student');
-        const tabAdmin = document.getElementById('tab-admin');
-        const panelStudent = document.getElementById('panel-student');
-        const panelAdmin = document.getElementById('panel-admin');
 
-        tabStudent.addEventListener('click', () => {
-            tabStudent.classList.add('active');
-            tabAdmin.classList.remove('active');
-            panelStudent.classList.add('active');
-            panelAdmin.classList.remove('active');
+    <script>
+        const tabStudent = document.getElementById("tab-student");
+        const tabAdmin = document.getElementById("tab-admin");
+        const panelStudent = document.getElementById("panel-student");
+        const panelAdmin = document.getElementById("panel-admin");
+
+        tabStudent.addEventListener("click", () => {
+            tabStudent.classList.add("active");
+            tabAdmin.classList.remove("active");
+            panelStudent.classList.add("active");
+            panelAdmin.classList.remove("active");
         });
 
-        tabAdmin.addEventListener('click', () => {
-            tabAdmin.classList.add('active');
-            tabStudent.classList.remove('active');
-            panelAdmin.classList.add('active');
-            panelStudent.classList.remove('active');
+        tabAdmin.addEventListener("click", () => {
+            tabAdmin.classList.add("active");
+            tabStudent.classList.remove("active");
+            panelAdmin.classList.add("active");
+            panelStudent.classList.remove("active");
         });
     </script>
+
 </body>
 </html>
