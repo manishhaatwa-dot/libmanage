@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Master Owner Control Room - LibManage SaaS</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://googleapis.com">
+    <link rel="preconnect" href="https://gstatic.com" crossorigin>
+    <link href="https://googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Global Base Styles -->
+    <link rel="stylesheet" href="../css/style.css">
+    <!-- Manager Panel Styles -->
+    <link rel="stylesheet" href="../css/manager.css">
+</head>
+<body>
+
+    <div class="manager-layout-wrapper">
+        <!-- Top Operations Ribbon -->
+        <header class="manager-top-navbar glass">
+            <div class="mgr-nav-left">
+                <span class="mgr-brand-logo">??</span>
+                <div>
+                    <h1>SaaS Master Command Center</h1>
+                    <p>System Owner: Network Supervisor Terminal</p>
+                </div>
+            </div>
+            <button class="btn-mgr-logout" id="mgr-logout-btn">Exit Control Room ??</button>
+        </header>
+
+        <main class="manager-content-body">
+            <!-- Global Metrics Row -->
+            <div class="mgr-metrics-grid">
+                <div class="mgr-metric-card glass">
+                    <h3>Total Registered Branches</h3>
+                    <p id="total-branches-count">0</p>
+                </div>
+                <div class="mgr-metric-card glass">
+                    <h3>Active Terminal Nodes</h3>
+                    <p id="active-branches-count" class="text-green">0</p>
+                </div>
+                <div class="mgr-metric-card glass">
+                    <h3>Suspended Branches (Cash Hold)</h3>
+                    <p id="disabled-branches-count" class="text-red">0</p>
+                </div>
+            </div>
+
+            <!-- Double Section Columns -->
+            <div class="mgr-split-grid">
+                <!-- Left Block: Add Library Manually -->
+                <div class="panel-card glass mgr-panel-padded">
+                    <h2>Deploy New Library Branch</h2>
+                    <p class="panel-subtitle">Manually bootstrap a new network node instantly with Custom Total Seat Capacity limits.</p>
+                    
+                    <form id="create-library-form" class="mgr-creation-form">
+                        <div class="form-group">
+                            <label for="lib-name">Library Name *</label>
+                            <input type="text" id="lib-name" placeholder="e.g., Prime Space Library" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="lib-email">Admin Login Email *</label>
+                            <input type="email" id="lib-email" placeholder="manager@prime.com" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="lib-pass">Console Password *</label>
+                            <input type="text" id="lib-pass" value="password123" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="lib-seats">Manual Seat Capacity (Strength) *</label>
+                            <input type="number" id="lib-seats" value="30" min="5" max="500" required>
+                        </div>
+                        <button type="submit" class="btn-mgr-submit">Initialize Network Node</button>
+                    </form>
+                </div>
+
+                <!-- Right Block: Network Audit Sheet -->
+                <div class="panel-card glass mgr-panel-padded">
+                    <h2>Ecosystem Network Registry</h2>
+                    <p class="panel-subtitle">Live toggle between Active and Disabled states to hold access immediately based on Cash collection agreements.</p>
+                    
+                    <div class="mgr-table-scroll-wrapper">
+                        <table class="mgr-data-table">
+                            <thead>
+                                <tr>
+                                    <th>ID / Name</th>
+                                    <th>Admin Email</th>
+                                    <th>Strength</th>
+                                    <th>Status Flow</th>
+                                    <th class="text-right">Actions Matrix</th>
+                                </tr>
+                            </thead>
+                            <tbody id="network-libraries-rows">
+                                <!-- Loaded dynamically via system script database logs -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Script Controllers Injection Links -->
+    <script src="../js/manager.js"></script>
+</body>
+</html>

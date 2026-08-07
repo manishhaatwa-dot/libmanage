@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Portal - Dashboard Overview</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://googleapis.com">
+    <link rel="preconnect" href="https://gstatic.com" crossorigin>
+    <link href="https://googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Global Base Styles -->
+    <link rel="stylesheet" href="../css/style.css">
+    <!-- Shared Blueprint UI Elements Overrides -->
+    <link rel="stylesheet" href="../css/dashboard.css">
+    <link rel="stylesheet" href="../css/timetable.css">
+    <style>
+        .student-portal-wrapper { max-width: 1300px; width: 100%; margin: 0 auto; padding: 2rem 1.5rem; }
+        .std-nav { display: flex; justify-content: space-between; align-items: center; padding: 1.25rem 2rem; margin-bottom: 2rem; }
+        .std-nav h1 { font-size: 1.35rem; font-weight: 700; color: var(--text-main); }
+        .std-profile-strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+        .profile-data-card { padding: 1rem; border-left: 4px solid var(--primary-color); background: #ffffff; border-radius: var(--radius-sm); box-shadow: var(--shadow-sm); }
+        .profile-data-card p { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; }
+        .profile-data-card h4 { font-size: 1.1rem; font-weight: 700; color: var(--text-main); margin-top: 0.15rem; }
+        .logout-btn-std { background: rgba(239, 68, 68, 0.1); color: #dc2626; border: 1px solid rgba(239, 68, 68, 0.2); padding: 0.45rem 1.25rem; font-size: 0.85rem; font-weight: 600; border-radius: var(--radius-sm); cursor: pointer; transition: var(--transition-smooth); }
+        .logout-btn-std:hover { background: #dc2626; color: #ffffff; }
+    </style>
+</head>
+<body>
+
+    <div class="student-portal-wrapper">
+        <!-- Top Custom Branding Ribbon -->
+        <header class="std-nav glass">
+            <div>
+                <h1 id="lbl-portal-library-title">Library Terminal Portal</h1>
+                <p style="font-size:0.8rem; color:var(--text-muted); font-weight:500;" id="lbl-portal-welcome-tag">Student Access Workspace</p>
+            </div>
+            <button class="logout-btn-std" id="std-logout-trigger-btn">Exit Portal ??</button>
+        </header>
+
+        <!-- Dynamic Profile Summary Cards row -->
+        <div class="std-profile-strip" id="student-meta-profile-strip">
+            <!-- Loaded dynamically via runtime lookup fields -->
+        </div>
+
+        <!-- Metric Ratio summaries cards grid row -->
+        <div class="analytics-summary-grid" style="margin-bottom: 2rem;">
+            <div class="analytic-card glass">
+                <h4>Your Attendance Score</h4>
+                <p id="lbl-ratio-metric" style="font-size: 2.25rem; color: var(--primary-color);">0%</p>
+            </div>
+            <div class="analytic-card glass">
+                <h4>Days Attended (Present)</h4>
+                <p id="lbl-p-metric" style="font-size: 2.25rem; color: #10b981;">0</p>
+            </div>
+            <div class="analytic-card glass">
+                <h4>Days Missed (Absent)</h4>
+                <p id="lbl-a-metric" style="font-size: 2.25rem; color: #ef4444;">0</p>
+            </div>
+        </div>
+
+        <!-- Split Columns Grid for Operational insights views -->
+        <div class="operations-grid">
+            
+            <!-- Column 1: Shift Batch timings info block -->
+            <div class="panel-card glass ops-panel" style="min-height:380px;">
+                <div class="panel-title-bar">
+                    <h2>Library Hours & Shifts</h2>
+                </div>
+                <div class="timetable-list" id="lbl-canvas-shifts">
+                    <!-- Dynamic Timetable elements load here -->
+                </div>
+            </div>
+
+            <!-- Column 2: Central Bulletin Board messages info block -->
+            <div class="panel-card glass ops-panel" style="min-height:380px;">
+                <div class="panel-title-bar">
+                    <h2>Notice Board Notifications</h2>
+                </div>
+                <div class="bulletin-list-container" id="lbl-canvas-notices">
+                    <!-- Notices records load here -->
+                </div>
+            </div>
+
+            <!-- Column 3: Calendar Holiday catalogs block -->
+            <div class="panel-card glass ops-panel" style="min-height:380px;">
+                <div class="panel-title-bar">
+                    <h2>Branch Upcoming Holidays</h2>
+                </div>
+                <div class="bulletin-list-container" id="lbl-canvas-holidays">
+                    <!-- Holidays entries list here -->
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Firebase Compat SDK Integration Layers -->
+    <script src="https://gstatic.com"></script>
+    <script src="https://gstatic.com"></script>
+
+    <!-- Shared Framework Config Loader -->
+    <script src="../js/dashboard.js"></script>
+    <script>
+        const db = firebase.firestore();
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (sessionStorage.getItem('session_role') !== 'student') {
+                window.location.href = "../index.html";
+                return;
+            }
+            initializeStudentDashboardWorkspace();
+        });
+
+        function initializeStudentDashboardWorkspace() {
+            const activeUserCodeToken = sessionStorage.getItem('session_user_code');
+            const activeLibraryPartitionId = sessionStorage.getItem('session_library_id');
+
+            // 1. Setup Realtime Listener for Student subcollection document
+            db.collection("saas_libraries")
+              .doc(activeLibraryPartitionId)
+              .collection("students")
+              .doc(activeUserCodeToken)
+              .onSnapshot(async (studentDoc) => {
+                  if (!studentDoc.exists) {
+                      alert("Profile Error: Your student record profile is not present inside the cloud system.");
+                      window.location.href = "../index.html";
+                      return;
+                  }
+                  const studentData = studentDoc.data();
+
+                  try {
+                      // Fetch corresponding branch name from root collection doc
+                      const libDoc = await db.collection("saas_libraries").doc(activeLibraryPartitionId).get();
+                      if (libDoc.exists) {
+                          document.getElementById('lbl-portal-library-title').innerText = libDoc.data().name;
+                      }
+
+                      document.getElementById('lbl-portal-welcome-tag').innerText = `Logged In Student: ${studentData.name} (${activeUserCodeToken})`;
+
+                      // Paint local text nodes elements layout panels
+                      paintStudentProfileHorizontalBar(studentData);
+                      computeAndPaintPersonalAttendanceMetrics(studentData);
+
+                  } catch (err) {
+                      console.error("[Firestore Student Layout Hydration Fault]:", err);
+                  }
+              }, err => console.error("Cloud snapshot profile streaming failure:", err));
+
+            // 2. Setup Realtime Listener for shift hour documents inside timetable subcollection
+            db.collection("saas_libraries")
+              .doc(activeLibraryPartitionId)
+              .collection("timetable")
+              .doc("shift_config")
+              .onSnapshot((ttDoc) => {
+                  paintOperatingHoursShifts(ttDoc.exists ? ttDoc.data() : null);
+              });
+
+            // 3. Setup Realtime Listener for notice bulletins within library subcollection
+            db.collection("saas_libraries")
+              .doc(activeLibraryPartitionId)
+              .collection("notices")
+              .orderBy("timestamp", "desc")
+              .onSnapshot((noticesSnapshot) => {
+                  paintFilteredPublicNotices(noticesSnapshot);
+              });
+
+            // 4. Setup Realtime Listener for custom calendar holiday documents subcollection
+            db.collection("saas_libraries")
+              .doc(activeLibraryPartitionId)
+              .collection("holidays")
+              .onSnapshot((holidaysSnapshot) => {
+                  paintFilteredCalendarHolidays(holidaysSnapshot);
+              });
+
+            // Bind exit logouts handles hooks elements
+            document.getElementById('std-logout-trigger-btn').addEventListener('click', () => {
+                sessionStorage.clear();
+                window.location.href = "../index.html";
+            });
+        }
+
+        function paintStudentProfileHorizontalBar(student) {
+            const container = document.getElementById('student-meta-profile-strip');
+            if (!container) return;
+
+            container.innerHTML = `
+                <div class="profile-data-card">
+                    <p>Assigned Seat No</p>
+                    <h4 style="color:var(--primary-color); font-size:1.3rem;">${student.seatNumber ? student.seatNumber.toUpperCase() : 'N/A'}</h4>
+                </div>
+                <div class="profile-data-card" style="border-left-color: var(--secondary-color);">
+                    <p>Preparation / Class Block</p>
+                    <h4>${student.studentClass}</h4>
+                </div>
+                <div class="profile-data-card" style="border-left-color: var(--accent-color);">
+                    <p>Subscription Expiry</p>
+                    <h4>${student.expiryDate}</h4>
+                </div>
+            `;
+        }
+
+        async function computeAndPaintPersonalAttendanceMetrics(student) {

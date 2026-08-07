@@ -1,0 +1,118 @@
+/* ==========================================================================
+   MULTI-TENANT ATTENDANCE CONTROLS UI ARCHITECTURE STYLES
+   ========================================================================== */
+
+.attendance-tabs {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    border-bottom: 2px solid rgba(0, 0, 0, 0.05);
+    padding-bottom: 0.5rem;
+}
+
+.tab-btn {
+    background: none;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    cursor: pointer;
+    position: relative;
+    transition: var(--transition-smooth);
+}
+.tab-btn:hover { color: var(--primary-color); }
+.tab-btn.active { color: var(--primary-color); }
+.tab-btn.active::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: var(--primary-color);
+    border-radius: 50px;
+}
+
+.attendance-section { display: none; }
+.attendance-section.display-active { display: block; }
+
+.section-title-wrapper {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    gap: 1.5rem;
+}
+.section-title-wrapper h2 { font-size: 1.4rem; font-weight: 700; }
+.section-title-wrapper p { color: var(--text-muted); font-size: 0.85rem; }
+
+.live-date-control {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: #ffffff;
+    padding: 0.5rem 1rem;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--glass-border);
+}
+
+.attendance-table-card { padding: 1rem; }
+.attendance-data-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem; }
+.attendance-data-table th { padding: 1rem 0.75rem; background: rgba(0, 0, 0, 0.01); color: var(--text-muted); font-weight: 600; border-bottom: 2px solid rgba(0, 0, 0, 0.05); }
+.attendance-data-table td { padding: 0.9rem 0.75rem; border-bottom: 1px solid rgba(0, 0, 0, 0.04); color: var(--text-main); vertical-align: middle; }
+
+.center-header { text-align: center; }
+.actions-header-right { text-align: right; }
+.live-status-cell { display: flex; justify-content: center; }
+
+/* Interactive Toggle Buttons for Marking Matrix */
+.actions-cell-right { display: flex; justify-content: flex-end; gap: 0.4rem; }
+.btn-mark {
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    background: #ffffff;
+    padding: 0.35rem 0.85rem;
+    border-radius: var(--radius-sm);
+    font-weight: 600;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: var(--transition-smooth);
+}
+.btn-mark.present-toggle:hover, .btn-mark.present-toggle.active { background: #10b981; color: #ffffff; border-color: #10b981; box-shadow: 0 3px 8px rgba(16, 185, 129, 0.2); }
+.btn-mark.absent-toggle:hover, .btn-mark.absent-toggle.active { background: #ef4444; color: #ffffff; border-color: #ef4444; box-shadow: 0 3px 8px rgba(239, 68, 68, 0.2); }
+
+.status-indicator-badge {
+    display: inline-block;
+    padding: 0.25rem 0.65rem;
+    border-radius: 4px;
+    font-weight: 700;
+    font-size: 0.75rem;
+    text-align: center;
+    width: 100%;
+    max-width: 100px;
+}
+.status-indicator-badge.unmarked { background: #f1f5f9; color: var(--text-muted); }
+.status-indicator-badge.present { background: rgba(16, 185, 129, 0.12); color: #059669; }
+.status-indicator-badge.absent { background: rgba(239, 68, 68, 0.12); color: #dc2626; }
+
+/* Filter Configuration Bar for Historical Audit Views */
+.history-controls-panel { padding: 1.25rem; margin-bottom: 1.5rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.25rem; }
+.filter-group { display: flex; flex-direction: column; gap: 0.4rem; }
+.filter-group label { font-size: 0.85rem; font-weight: 600; color: var(--text-main); }
+.filter-group select, .filter-group input { padding: 0.6rem; border: 1px solid rgba(0, 0, 0, 0.1); background: #ffffff; border-radius: var(--radius-sm); outline: none; font-family: inherit; font-size: 0.9rem; }
+.filter-group select:focus, .filter-group input:focus { border-color: var(--primary-color); }
+
+.hide-element { display: none !important; }
+
+/* Analytics Summary Aggregates Cards */
+.analytics-summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.25rem; margin-bottom: 1.5rem; }
+.analytic-card { padding: 1.25rem; text-align: center; }
+.analytic-card h4 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); margin-bottom: 0.4rem; }
+.analytic-card p { font-size: 1.5rem; font-weight: 700; color: var(--text-main); }
+
+@media (max-width: 768px) {
+    .section-title-wrapper { flex-direction: column; align-items: flex-start; gap: 0.75rem; }
+}

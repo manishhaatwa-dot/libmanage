@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Library Terminal - Student Records</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://googleapis.com">
+    <link rel="preconnect" href="https://gstatic.com" crossorigin>
+    <link href="https://googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Global Style -->
+    <link rel="stylesheet" href="../css/style.css">
+    <!-- Student Panel Custom Style -->
+    <link rel="stylesheet" href="../css/students.css">
+</head>
+<body>
+
+    <div class="app-container">
+        <!-- Dynamic Sidebar Injection Link -->
+        <div id="sidebar-container"></div>
+
+        <div class="main-content">
+            <!-- Dynamic Navbar Injection Link -->
+            <div id="navbar-container"></div>
+
+            <main class="content-body">
+                <!-- Top Control Header -->
+                <div class="students-header">
+                    <div class="header-titles">
+                        <h1>Student Directory</h1>
+                        <p>Register library members. Every student receives an auto-generated Unique Login Code linked to their record.</p>
+                    </div>
+                    <button class="add-student-trigger" id="open-add-modal-btn">
+                        <span>?</span> Register New Student
+                    </button>
+                </div>
+
+                <!-- Utilities Search Box Panel -->
+                <div class="search-filter-panel glass">
+                    <div class="search-box">
+                        <span class="search-icon">??</span>
+                        <input type="text" id="student-search-input" placeholder="Search by Name, Unique Code, Seat, or Class...">
+                    </div>
+                </div>
+
+                <!-- Students Dynamic Data Grid Table -->
+                <div class="students-table-card glass">
+                    <div class="table-scroll-container">
+                        <table class="students-data-table">
+                            <thead>
+                                <tr>
+                                    <th>Unique Login Code</th>
+                                    <th>Seat No</th>
+                                    <th>Student Name</th>
+                                    <th>Father's Name</th>
+                                    <th>Class Block</th>
+                                    <th>Joining Date</th>
+                                    <th>Expiry Date</th>
+                                    <th>Status</th>
+                                    <th class="actions-header">Actions Matrix</th>
+                                </tr>
+                            </thead>
+                            <tbody id="students-table-rows">
+                                <!-- Dynamic JS injection occurs here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </main>
+
+            <!-- Dynamic Footer Injection Link -->
+            <div id="footer-container"></div>
+        </div>
+    </div>
+
+    <!-- Modal Form Interface Blueprint for Managing Profiles -->
+    <div class="modal-overlay" id="student-modal">
+        <div class="modal-window glass">
+            <div class="modal-header">
+                <h2 id="modal-title-context">Register New Student</h2>
+                <button class="close-modal-btn" id="close-modal-btn">?</button>
+            </div>
+            <form id="student-form" class="modal-form">
+                <!-- Form operational indices hooks parameters -->
+                <input type="hidden" id="form-edit-index" value="">
+                <input type="hidden" id="form-student-code" value="">
+                
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="std-name">Student Full Name *</label>
+                        <input type="text" id="std-name" required placeholder="Enter complete legal name">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="std-father">Father's Name *</label>
+                        <input type="text" id="std-father" required placeholder="Enter father's name">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="std-class">Class / Preparation Course *</label>
+                        <input type="text" id="std-class" required placeholder="e.g., UPSC / MCA / SSC">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="std-seat">Assigned Seat Number *</label>
+                        <input type="text" id="std-seat" required placeholder="e.g., A1, B4, J5">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="std-joining">Membership Joining Date *</label>
+                        <input type="date" id="std-joining" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="std-expiry">Membership Expiry Date *</label>
+                        <input type="date" id="std-expiry" required>
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label for="std-status">Status State</label>
+                        <select id="std-status">
+                            <option value="Active">Active</option>
+                            <option value="Expired">Expired</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Display Token Area Exclusively on Edit Mode to show their Unique Key -->
+                <div id="modal-code-display-block" class="hide-element" style="margin-bottom:1.25rem; padding:0.6rem; background:rgba(0,0,0,0.03); border-radius:4px; font-size:0.85rem; font-weight:600;">
+                    Student Login Code: <code id="lbl-display-unique-token" style="color:var(--primary-color); font-size:0.95rem;">-</code>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn-cancel" id="cancel-form-btn">Cancel</button>
+                    <button type="submit" class="btn-submit">Commit Record</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Script routing framework inclusions -->
+    <script src="../js/dashboard.js"></script>
+    <script src="../js/students.js"></script>
+</body>
+</html>

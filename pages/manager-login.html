@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Master Owner Access - LibManage SaaS</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://googleapis.com">
+    <link rel="preconnect" href="https://gstatic.com" crossorigin>
+    <link href="https://googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Base Styling -->
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+    <div class="gateway-container" style="margin: 15vh auto;">
+        <!-- Brand Header -->
+        <header class="gateway-header">
+            <h1>?? Owner Control Room</h1>
+            <p>SaaS Network Master Entry Terminal</p>
+        </header>
+
+        <!-- Card Section -->
+        <div class="gateway-card glass">
+            <div class="auth-panel active">
+                <h2>Secure Master Login</h2>
+                <p class="panel-subtitle">Provide your assigned Gmail ID and passcode credentials to authorize infrastructure node adjustments.</p>
+                
+                <form id="manager-standalone-login-form">
+                    <div class="form-group">
+                        <label for="manager-email-input">Manager Gmail Address</label>
+                        <input type="email" id="manager-email-input" placeholder="manager@gmail.com" required autocomplete="username">
+                    </div>
+                    <div class="form-group">
+                        <label for="manager-password-input">Master Password</label>
+                        <input type="password" id="manager-password-input" placeholder="••••••••" required autocomplete="current-password">
+                    </div>
+                    <button type="submit" class="btn-gateway-submit btn-manager-override">Execute Authorization</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase Compat SDK Web Tags Integration Blueprint -->
+    <script src="https://gstatic.com"></script>
+    <script src="https://gstatic.com"></script>
+
+    <!-- Shared Framework Config Engine Loader -->
+    <script src="../js/dashboard.js"></script>
+    <script>
+        // Standalone login route execution - Authenticates straight against live cloud structures
+        document.getElementById('manager-standalone-login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const emailInput = document.getElementById('manager-email-input').value.trim().toLowerCase();
+            const passwordInput = document.getElementById('manager-password-input').value.trim();
+
+            try {
+                // Fetch credentials document path context directly from owner master nodes data block schemas
+                const ownerSnapshot = await db.collection("saas_owner").doc("master").get();
+
+                if (!ownerSnapshot.exists) {
+                    // Seed master node configurations parameters safely on first transaction hit if non-existent
+                    const baselineOwnerCredentialsSeed = {
+                        email: "manager@gmail.com",
+                        password: "owner@99",
+                        role: "super_manager"
+                    };
+                    await db.collection("saas_owner").doc("master").set(baselineOwnerCredentialsSeed);
+                    alert("System Baseline Config Bootstrapped. Re-submit to authorize.");
+                    return;
+                }
+
+                const ownerData = ownerSnapshot.data();
+
+                if (emailInput === ownerData.email && passwordInput === ownerData.password) {
+                    sessionStorage.setItem('session_role', 'manager');
+                    window.location.href = "manager-dashboard.html"; 
+                } else {
+                    alert("Authorization Denied: Invalid manager email or master passcode sequence.");
+                }
+
+            } catch (error) {
+                console.error("[Firestore Manager Auth Pipeline Fault]:", error);
+                alert("Could not connect to Firebase Cloud Database. Check your internet link parameters.");
+            }
+        });
+    </script>
+</body>
+</html>

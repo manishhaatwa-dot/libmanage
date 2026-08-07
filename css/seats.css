@@ -1,0 +1,114 @@
+/* ==========================================================================
+   MULTI-TENANT SEAT GRID CANVASES SPECIFIC STYLES
+   ========================================================================== */
+
+.seats-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    gap: 1.5rem;
+}
+
+/* Legend Info Displays */
+.legend-panel { display: flex; gap: 1.25rem; padding: 0.6rem 1.25rem; border-radius: 50px; }
+.legend-item { display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; font-weight: 600; color: var(--text-main); }
+.legend-box { width: 14px; height: 14px; border-radius: 4px; display: inline-block; }
+
+/* Palette Maps Config Variables overrides colors rules channels */
+.legend-box.available, .seat-unit.available { background: #10b981; color: #ffffff; }
+.legend-box.occupied, .seat-unit.occupied { background: var(--primary-color); color: #ffffff; }
+.legend-box.expired, .seat-unit.expired { background: #ef4444; color: #ffffff; }
+
+/* Structural Seat Layout Blueprint Grid Canvas rules layers */
+.matrix-container {
+    padding: 2.5rem 1.5rem;
+    min-height: 500px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+}
+
+.seat-grid-canvas {
+    display: grid;
+    /* Clean fluid flex row grids columns rules sets that fit up to 500 seat nodes cleanly */
+    grid-template-columns: repeat(auto-fill, minmax(95px, 1fr));
+    gap: 1.25rem 1.5rem;
+    width: 100%;
+    max-width: 1100px;
+    justify-content: center;
+}
+
+/* Unit Blocks Interactivity Cards definitions */
+.seat-unit {
+    height: 68px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1.05rem;
+    cursor: pointer;
+    box-shadow: var(--shadow-sm);
+    transition: var(--transition-smooth);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    padding: 0.25rem;
+    text-align: center;
+}
+.seat-unit:hover {
+    transform: translateY(-3px) scale(1.03);
+    box-shadow: var(--shadow-lg);
+}
+
+.seat-occupant-lbl {
+    font-size: 0.65rem;
+    font-weight: 500;
+    opacity: 0.9;
+    max-width: 80px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-top: 0.2rem;
+}
+
+/* Modals sub section containers routes switches toggle views states codes overrides */
+.inspector-section { display: none; }
+.inspector-section.active { display: block; }
+
+.detail-data-block {
+    margin-bottom: 1rem;
+    background: #ffffff;
+    padding: 0.65rem 0.85rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
+.data-label { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; margin-bottom: 0.15rem; }
+.data-value { font-size: 1rem; font-weight: 600; color: var(--text-main); }
+
+.inspector-actions { margin-top: 1.5rem; border-top: 1px solid rgba(0, 0, 0, 0.05); padding-top: 1rem; }
+.btn-action-primary {
+    width: 100%;
+    background: var(--primary-color);
+    color: #ffffff;
+    border: none;
+    padding: 0.8rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition-smooth);
+    box-shadow: 0 4px 10px rgba(37, 99, 234, 0.15);
+}
+.btn-action-primary:hover { background: var(--primary-hover); }
+
+.form-tip-note { font-size: 0.75rem; color: var(--text-muted); margin-top: 0.5rem; line-height: 1.4; }
+
+@media (max-width: 768px) {
+    .seats-header { flex-direction: column; align-items: flex-start; gap: 1rem; }
+    .legend-panel { width: 100%; justify-content: space-between; }
+    .matrix-container { padding: 1.5rem 0.25rem; }
+    .seat-grid-canvas { grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 0.85rem; }
+    .seat-unit { height: 60px; font-size: 0.95rem; }
+}
