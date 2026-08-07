@@ -144,6 +144,7 @@ function paintStudentDirectoryTableGrid(dataset) {
             const name = escapeHtml(student.name || '');
             const fatherName = escapeHtml(student.fatherName || '');
             const studentClass = escapeHtml(student.studentClass || '');
+            const shift = escapeHtml(student.shift || "");
             const joiningDate = escapeHtml(student.joiningDate || '');
             const expiryDate = escapeHtml(student.expiryDate || '');
             const status = escapeHtml(student.status || 'Unknown');
@@ -164,6 +165,7 @@ function paintStudentDirectoryTableGrid(dataset) {
                     <td>
                         <span class="student-class-badge">${studentClass}</span>
                     </td>
+                    <td>${shift}</td>
                     <td>${joiningDate}</td>
                     <td>${expiryDate}</td>
                     <td>
@@ -341,6 +343,7 @@ async function commitStudentDirectoryMutationAction(event) {
         const name = document.getElementById('std-name')?.value.trim() || "";
         const fatherName = document.getElementById('std-father')?.value.trim() || "";
         const studentClass = document.getElementById('std-class')?.value.trim() || "";
+        const shift = document.getElementById('std-shift')?.value || "";
         const seatNumber = (document.getElementById('std-seat')?.value.trim() || "").toUpperCase();
         const joiningDate = document.getElementById('std-joining')?.value || "";
         const expiryDate = document.getElementById('std-expiry')?.value || "";
@@ -387,6 +390,7 @@ async function commitStudentDirectoryMutationAction(event) {
             name: name,
             fatherName: fatherName,
             studentClass: studentClass,
+            shift: shift,
             seatNumber: seatNumber,
             joiningDate: joiningDate,
             expiryDate: expiryDate,
@@ -438,6 +442,7 @@ window.routeProfileToEditPipeline = function(studentCodeToken) {
         const stdName = document.getElementById('std-name');
         const stdFather = document.getElementById('std-father');
         const stdClass = document.getElementById('std-class');
+        const stdShift = document.getElementById('std-shift');
         const stdSeat = document.getElementById('std-seat');
         const stdJoining = document.getElementById('std-joining');
         const stdExpiry = document.getElementById('std-expiry');
@@ -450,6 +455,7 @@ window.routeProfileToEditPipeline = function(studentCodeToken) {
         if (stdName) stdName.value = profileObj.name || "";
         if (stdFather) stdFather.value = profileObj.fatherName || "";
         if (stdClass) stdClass.value = profileObj.studentClass || "";
+        if (stdShift) stdShift.value = profileObj.shift || "";
         if (stdSeat) stdSeat.value = profileObj.seatNumber || "";
         if (stdJoining) stdJoining.value = profileObj.joiningDate || "";
         if (stdExpiry) stdExpiry.value = profileObj.expiryDate || "";
