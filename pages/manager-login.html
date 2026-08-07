@@ -4,103 +4,125 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Master Owner Access - LibManage SaaS</title>
+
     <!-- Google Fonts -->
-    <link rel="preconnect" href="https://googleapis.com">
-    <link rel="preconnect" href="https://gstatic.com" crossorigin>
-    <link href="https://googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Base Styling -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- CSS -->
     <link rel="stylesheet" href="../css/style.css">
 </head>
 <body>
 
-    <div class="gateway-container" style="margin: 15vh auto;">
-        <!-- Brand Header -->
-        <header class="gateway-header">
-            <h1>🔒 Owner Control Room</h1>
-            <p>SaaS Network Master Entry Terminal</p>
-        </header>
+<div class="gateway-container" style="margin:15vh auto;">
 
-        <!-- Card Section -->
-        <div class="gateway-card glass">
-            <div class="auth-panel active">
-                <h2>Secure Master Login</h2>
-                <p class="panel-subtitle">Provide your assigned Gmail ID and passcode credentials to authorize infrastructure node adjustments.</p>
-                
-                <form id="manager-standalone-login-form">
-                    <div class="form-group">
-                        <label for="manager-email-input">Manager Gmail Address</label>
-                        <input type="email" id="manager-email-input" placeholder="manager@gmail.com" required autocomplete="username">
-                    </div>
-                    <div class="form-group">
-                        <label for="manager-password-input">Master Password</label>
-                        <input type="password" id="manager-password-input" placeholder="••••••••" required autocomplete="current-password">
-                    </div>
-                    <button type="submit" class="btn-gateway-submit btn-manager-override">Execute Authorization</button>
-                </form>
-            </div>
+    <header class="gateway-header">
+        <h1>?? Owner Control Room</h1>
+        <p>SaaS Network Master Entry Terminal</p>
+    </header>
+
+    <div class="gateway-card glass">
+
+        <div class="auth-panel active">
+
+            <h2>Secure Master Login</h2>
+
+            <p class="panel-subtitle">
+                Provide your assigned Gmail ID and passcode credentials.
+            </p>
+
+            <form id="manager-standalone-login-form">
+
+                <div class="form-group">
+                    <label>Manager Gmail Address</label>
+                    <input
+                        type="email"
+                        id="manager-email-input"
+                        placeholder="manager@gmail.com"
+                        required>
+                </div>
+
+                <div class="form-group">
+                    <label>Master Password</label>
+                    <input
+                        type="password"
+                        id="manager-password-input"
+                        placeholder="••••••••"
+                        required>
+                </div>
+
+                <button
+                    type="submit"
+                    class="btn-gateway-submit btn-manager-override">
+                    Execute Authorization
+                </button>
+
+            </form>
+
         </div>
+
     </div>
 
-    <!-- STEP 1: Load Firebase Core Compat Core SDK Libraries FIRST -->
-    <script src="https://gstatic.com"></script>
-    <script src="https://gstatic.com"></script>
+</div>
 
-    <!-- STEP 2: Strict Synchronous Deterministic Bootstrapper Logic -->
-    <script>
-        // Universal Firebase App App Config
-        const runtimeFirebaseConfig = {
-            apiKey: "AIzaSyCUe84QnEA5DY31DXtzM-7M4Xu5bSa8xO8",
-            authDomain: "://firebaseapp.com",
-            projectId: "appointment-app-cb979",
-            storageBucket: "appointment-app-cb979.firebasestorage.app",
-            messagingSenderId: "596931961212",
-            appId: "1:596931961212:web:6039e8f8ab4e759c9104f9"
-        };
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
-        // Guaranteed Initialization Sequence before ANY execution reference occurs
-        if (!firebase.apps.length) {
-            firebase.initializeApp(runtimeFirebaseConfig);
+<!-- Shared Firebase Core -->
+<script src="../js/dashboard.js"></script>
+
+<script>
+
+const db = window.db;
+
+document.getElementById("manager-standalone-login-form").addEventListener("submit", async (e) => {
+
+    e.preventDefault();
+
+    const email = document.getElementById("manager-email-input").value.trim().toLowerCase();
+    const password = document.getElementById("manager-password-input").value.trim();
+
+    try {
+
+        const ownerDoc = await db.collection("saas_owner").doc("master").get();
+
+        if (!ownerDoc.exists) {
+
+            await db.collection("saas_owner").doc("master").set({
+                email: "manager@gmail.com",
+                password: "owner@99",
+                role: "super_manager"
+            });
+
+            alert("Default manager account created. Please login again.");
+            return;
         }
-        
-        // Window-bound global isolation instantiation to safely clear temporal dead zones (TDZ)
-        window.dbInstance = firebase.firestore();
 
-        // Bind form capture directly after explicit instance confirmation loop
-        document.getElementById('manager-standalone-login-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const emailInput = document.getElementById('manager-email-input').value.trim().toLowerCase();
-            const passwordInput = document.getElementById('manager-password-input').value.trim();
+        const owner = ownerDoc.data();
 
-            try {
-                // Execute atomic read from explicit windows scoped connection reference
-                const ownerSnapshot = await window.dbInstance.collection("saas_owner").doc("master").get();
+        if (owner.email === email && owner.password === password) {
 
-                if (!ownerSnapshot.exists) {
-                    const baselineOwnerCredentialsSeed = {
-                        email: "manager@gmail.com",
-                        password: "owner@99",
-                        role: "super_manager"
-                    };
-                    await window.dbInstance.collection("saas_owner").doc("master").set(baselineOwnerCredentialsSeed);
-                    alert("System Baseline Config Bootstrapped to Firestore Cloud Document. Re-submit credentials to log in.");
-                    return;
-                }
+            sessionStorage.setItem("session_role", "manager");
+            window.location.href = "manager-dashboard.html";
 
-                const ownerData = ownerSnapshot.data();
+        } else {
 
-                if (emailInput === ownerData.email && passwordInput === ownerData.password) {
-                    sessionStorage.setItem('session_role', 'manager');
-                    window.location.href = "manager-dashboard.html"; 
-                } else {
-                    alert("Authorization Denied: Invalid manager email or master passcode sequence.");
-                }
+            alert("Invalid Email or Password.");
 
-            } catch (error) {
-                console.error("[Firestore Manager Isolated Auth Fault]:", error);
-                alert("Firestore Transaction Failed: Check rules permissions or console tracking logs.");
-            }
-        });
-    </script>
+        }
+
+    } catch (error) {
+
+        console.error("Manager Login Error:", error);
+        alert(error.message);
+
+    }
+
+});
+
+</script>
+
 </body>
 </html>
