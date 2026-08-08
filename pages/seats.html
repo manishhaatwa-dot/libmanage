@@ -2,113 +2,97 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Library Terminal - Seat Layout Matrix</title>
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://googleapis.com">
-    <link rel="preconnect" href="https://gstatic.com" crossorigin>
-    <link href="https://googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Global Style -->
-    <link rel="stylesheet" href="../css/style.css">
-    <!-- Seats Grid Custom Style -->
-    <link rel="stylesheet" href="../css/seats.css">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0">
+
+    <title>Seat Management</title>
+
+    <link rel="stylesheet" href="../css/dashboard.css">
 </head>
+
 <body>
 
-    <div class="app-container">
-        <!-- Dynamic Sidebar Injection Link -->
-        <div id="sidebar-container"></div>
+    <!-- Sidebar -->
+    <div id="sidebar-container"></div>
 
-        <div class="main-content">
-            <!-- Dynamic Navbar Injection Link -->
-            <div id="navbar-container"></div>
+    <!-- Main Content -->
+    <main class="main-content">
 
-            <main class="content-body">
-                <!-- Title & Structural Legends Header -->
-                <div class="seats-header">
-                    <div class="header-titles">
-                        <h1>Seat Matrix Grid Layout</h1>
-                        <p>Visual map generated automatically according to your branch's Custom Seat Capacity configurations. Click any seat to adjust student assignments.</p>
-                    </div>
-                    <!-- Visual Legends Panel Row -->
-                    <div class="legend-panel glass">
-                        <div class="legend-item"><span class="legend-box available"></span> Available</div>
-                        <div class="legend-item"><span class="legend-box occupied"></span> Occupied</div>
-                        <div class="legend-item"><span class="legend-box expired"></span> Expired</div>
-                    </div>
-                </div>
+        <!-- Navbar -->
+        <div id="navbar-container"></div>
 
-                <!-- Interactive Mapping Screen Parent Container -->
-                <div class="matrix-container glass">
-                    <div class="seat-grid-canvas" id="library-matrix-grid">
-                        <!-- Dynamic Seat blocks (A1, A2...) are injected via JS according to totalSeats count -->
-                    </div>
-                </div>
-            </main>
+        <section class="page-content">
 
-            <!-- Dynamic Footer Injection Link -->
-            <div id="footer-container"></div>
-        </div>
-    </div>
-
-    <!-- Seat Inspector & Assignment Modal Interface Overlay -->
-    <div class="modal-overlay" id="seat-inspector-modal">
-        <div class="modal-window glass">
-            <div class="modal-header">
-                <h2>Manage Assignment: <span id="inspect-seat-id">N/A</span></h2>
-                <button class="close-modal-btn" id="close-inspector-btn">?</button>
-            </div>
-            
-            <!-- VIEW MODE VIEW LAYER PANEL -->
-            <div id="seat-details-view" class="inspector-section active">
-                <div class="detail-data-block">
-                    <p class="data-label">Current Occupant Name</p>
-                    <p class="data-value" id="inspect-student-name">Unoccupied</p>
-                </div>
-                <div class="detail-data-block">
-                    <p class="data-label">Unique Student Code</p>
-                    <p class="data-value" id="inspect-student-code">-</p>
-                </div>
-                <div class="detail-data-block">
-                    <p class="data-label">Father's Name</p>
-                    <p class="data-value" id="inspect-father-name">-</p>
-                </div>
-                <div class="detail-data-block">
-                    <p class="data-label">Class Block Module</p>
-                    <p class="data-value" id="inspect-class">-</p>
-                </div>
-                <div class="detail-data-block">
-                    <p class="data-label">Membership Subscription Expiry</p>
-                    <p class="data-value" id="inspect-expiry-date">-</p>
-                </div>
-                
-                <div class="inspector-actions">
-                    <button class="btn-action-primary" id="trigger-reassign-btn">Modify / Change Student Assignee</button>
+            <div class="page-header">
+                <div>
+                    <h1>Seat Management</h1>
+                    <p>View library seat availability and occupancy.</p>
                 </div>
             </div>
 
-            <!-- MUTATOR REASSIGN MODE INLINE FORM PANEL -->
-            <div id="seat-reassign-form-view" class="inspector-section">
-                <form id="reassign-form">
-                    <div class="form-group full-width">
-                        <label for="student-dropdown-selector">Select New Assignee for this Seat Slot</label>
-                        <select id="student-dropdown-selector" required>
-                            <!-- Filtered candidate student profiles options listed dynamically via JS -->
-                        </select>
-                        <p class="form-tip-note">Note: Only students currently registered under this library branch who do not hold a seat assignment are listed here. Reassigning will detach this seat from any previous user automatically.</p>
-                    </div>
-                    
-                    <div class="form-actions">
-                        <button type="button" class="btn-cancel" id="cancel-reassign-btn">Back</button>
-                        <button type="submit" class="btn-submit">Confirm Reassignment</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
+            <!-- Seat Summary -->
+            <div class="stats-grid">
 
-    <!-- Framework Control Script Links -->
+                <div class="stat-card glass">
+                    <h3>Total Seats</h3>
+                    <strong id="total-seats-count">0</strong>
+                </div>
+
+                <div class="stat-card glass">
+                    <h3>Available</h3>
+                    <strong id="available-seats-count">0</strong>
+                </div>
+
+                <div class="stat-card glass">
+                    <h3>Occupied</h3>
+                    <strong id="occupied-seats-count">0</strong>
+                </div>
+
+            </div>
+
+            <!-- Seat Controls -->
+            <div class="search-filter-panel glass">
+
+                <div class="search-box">
+                    <input
+                        type="text"
+                        id="seat-search-input"
+                        placeholder="Search seat or student name...">
+                </div>
+
+            </div>
+
+            <!-- Seat Grid -->
+            <div class="students-table-card glass">
+
+                <div
+                    id="seat-grid"
+                    class="seat-grid">
+
+                    <!-- Seats will load here -->
+
+                </div>
+
+            </div>
+
+        </section>
+
+        <!-- Footer -->
+        <div id="footer-container"></div>
+
+    </main>
+
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+    <!-- Shared Logic -->
     <script src="../js/dashboard.js"></script>
+
+    <!-- Seat Logic -->
     <script src="../js/seats.js"></script>
+
 </body>
 </html>
