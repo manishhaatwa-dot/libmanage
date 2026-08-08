@@ -208,7 +208,83 @@ function setupSeatRealtimeListener() {
 
                 if (student.seatNumber) {
                     seatStudents.push(student);
+                
                 }
+                document
+    .getElementById("available-seats-card")
+    ?.addEventListener("click", openShiftAvailabilityModal);
+
+
+document
+    .getElementById("close-shift-availability")
+    ?.addEventListener("click", closeShiftAvailabilityModal);
+
+
+function openShiftAvailabilityModal() {
+
+    const modal =
+        document.getElementById("shift-availability-modal");
+
+    if (!modal) return;
+
+    renderShiftAvailability();
+
+    modal.classList.add("active");
+
+}
+
+
+function closeShiftAvailabilityModal() {
+
+    const modal =
+        document.getElementById("shift-availability-modal");
+
+    if (!modal) return;
+
+    modal.classList.remove("active");
+
+}
+
+
+function renderShiftAvailability() {
+
+    const container =
+        document.getElementById("shift-availability-content");
+
+    if (!container) return;
+
+    const shifts = [
+        "Morning",
+        "Afternoon",
+        "Evening"
+    ];
+
+    container.innerHTML = shifts.map((shift) => {
+
+        const occupied =
+            seatStudents.filter(
+                (student) => student.shift === shift
+            ).length;
+
+        return `
+            <div class="shift-availability-row">
+
+                <strong>${shift}</strong>
+
+                <span>
+                    Occupied: ${occupied}
+                </span>
+
+                <span>
+                    Available: Capacity not set
+                </span>
+
+            </div>
+        `;
+
+    }).join("");
+
+}
 
             });
 
