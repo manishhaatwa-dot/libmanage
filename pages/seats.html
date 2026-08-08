@@ -7,12 +7,11 @@
   <link rel="stylesheet" href="../css/dashboard.css" />
 
   <style>
-    /* Seat Management Page Styles */
     .seat-page {
       width: 100%;
       min-height: 100vh;
-      box-sizing: border-box;
       padding: 20px;
+      box-sizing: border-box;
     }
 
     .seat-page * {
@@ -21,8 +20,8 @@
 
     .seat-header {
       display: flex;
-      align-items: center;
       justify-content: space-between;
+      align-items: center;
       gap: 16px;
       flex-wrap: wrap;
       margin-bottom: 18px;
@@ -36,8 +35,8 @@
 
     .seat-title-wrap p {
       margin: 0;
-      opacity: 0.8;
       font-size: 14px;
+      opacity: 0.85;
     }
 
     .seat-actions {
@@ -58,7 +57,7 @@
       font-weight: 600;
       backdrop-filter: blur(10px);
       -webkit-backdrop-filter: blur(10px);
-      transition: 0.2s ease;
+      transition: all 0.2s ease;
     }
 
     .seat-btn:hover {
@@ -66,13 +65,9 @@
     }
 
     .seat-btn.primary {
-      background: linear-gradient(135deg, rgba(71, 126, 255, 0.95), rgba(79, 172, 254, 0.92));
+      background: linear-gradient(135deg, #4f46e5, #2563eb);
       color: #fff;
       border-color: rgba(255, 255, 255, 0.12);
-    }
-
-    .seat-btn.primary:hover {
-      filter: brightness(1.05);
     }
 
     .seat-search-wrap {
@@ -111,180 +106,211 @@
     }
 
     .seat-alert.info {
-      background: rgba(79, 172, 254, 0.15);
-      border-color: rgba(79, 172, 254, 0.28);
+      background: rgba(59, 130, 246, 0.15);
+      border-color: rgba(59, 130, 246, 0.28);
     }
 
     .seat-alert.success {
-      background: rgba(46, 204, 113, 0.16);
-      border-color: rgba(46, 204, 113, 0.28);
+      background: rgba(34, 197, 94, 0.16);
+      border-color: rgba(34, 197, 94, 0.28);
     }
 
     .seat-alert.error {
-      background: rgba(255, 99, 132, 0.16);
-      border-color: rgba(255, 99, 132, 0.28);
+      background: rgba(239, 68, 68, 0.16);
+      border-color: rgba(239, 68, 68, 0.28);
     }
 
-    .seat-cards {
+    .seat-summary-grid {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 18px;
+      gap: 16px;
       align-items: start;
     }
 
     .seat-card {
       position: relative;
-      min-height: 190px;
-      border-radius: 18px;
+      border-radius: 20px;
       padding: 18px;
-      background: rgba(255, 255, 255, 0.1);
-      border: 1px solid rgba(255, 255, 255, 0.14);
-      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
+      min-height: 180px;
+      color: #fff;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.16);
       backdrop-filter: blur(14px);
       -webkit-backdrop-filter: blur(14px);
-      overflow: hidden;
     }
 
-    .seat-card.clickable {
+    .seat-card-green {
+      background: linear-gradient(135deg, #34d399, #10b981);
+    }
+
+    .seat-card-blue {
+      background: linear-gradient(135deg, #60a5fa, #2563eb);
+    }
+
+    .seat-card-orange {
+      background: linear-gradient(135deg, #fb923c, #f97316);
+    }
+
+    .seat-card-clickable {
       cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
 
-    .seat-card.clickable:hover {
+    .seat-card-clickable:hover {
       transform: translateY(-2px);
-      transition: 0.2s ease;
+      box-shadow: 0 14px 34px rgba(0, 0, 0, 0.18);
     }
 
-    .seat-card-head {
+    .seat-card-top {
       display: flex;
-      align-items: flex-start;
       justify-content: space-between;
+      align-items: flex-start;
       gap: 10px;
-      margin-bottom: 10px;
+      margin-bottom: 14px;
     }
 
     .seat-card-label {
-      font-size: 13px;
-      opacity: 0.85;
-      margin-bottom: 8px;
-      letter-spacing: 0.2px;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+      opacity: 0.95;
+    }
+
+    .seat-card-badge {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      background: rgba(255, 255, 255, 0.18);
+      white-space: nowrap;
     }
 
     .seat-card-value {
-      font-size: 36px;
+      font-size: 42px;
+      font-weight: 800;
       line-height: 1;
-      font-weight: 700;
-      margin: 0 0 10px;
+      margin-bottom: 10px;
       word-break: break-word;
     }
 
     .seat-card-subtext {
-      font-size: 13px;
-      opacity: 0.8;
+      font-size: 14px;
       line-height: 1.5;
+      opacity: 0.95;
+      margin-bottom: 10px;
+      min-height: 40px;
     }
 
     .seat-card-toggle {
-      font-size: 12px;
+      font-size: 13px;
       font-weight: 700;
-      padding: 7px 10px;
-      border-radius: 999px;
-      background: rgba(255, 255, 255, 0.14);
-      border: 1px solid rgba(255, 255, 255, 0.14);
-      white-space: nowrap;
+      opacity: 0.95;
     }
 
     .seat-card-content {
-      margin-top: 14px;
-      padding-top: 14px;
-      border-top: 1px solid rgba(255, 255, 255, 0.12);
       display: none;
+      margin-top: 16px;
+      padding-top: 14px;
+      border-top: 1px solid rgba(255, 255, 255, 0.22);
     }
 
     .seat-card.expanded .seat-card-content {
       display: block;
     }
 
-    .seat-empty-state {
-      padding: 14px 12px;
-      border-radius: 12px;
-      background: rgba(255, 255, 255, 0.08);
-      font-size: 13px;
-      line-height: 1.5;
-      opacity: 0.9;
+    .seat-card-scroll {
+      max-height: 320px;
+      overflow-y: auto;
+      padding-right: 4px;
     }
 
-    .shift-list,
-    .student-list {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      max-height: 340px;
-      overflow: auto;
-      padding-right: 2px;
+    .seat-card-scroll::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .seat-card-scroll::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.25);
+      border-radius: 999px;
+    }
+
+    .seat-empty-state {
+      font-size: 14px;
+      line-height: 1.5;
+      opacity: 0.95;
+      padding: 8px 2px;
     }
 
     .shift-item,
     .student-item {
-      width: 100%;
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      background: rgba(255, 255, 255, 0.10);
       border-radius: 14px;
       padding: 12px;
+    }
+
+    .shift-item + .shift-item,
+    .student-item + .student-item {
+      margin-top: 10px;
     }
 
     .shift-item-row,
     .student-item-row {
       display: flex;
-      align-items: center;
       justify-content: space-between;
+      align-items: flex-start;
       gap: 12px;
-      flex-wrap: wrap;
     }
 
     .shift-name,
     .student-seat {
       font-size: 15px;
       font-weight: 700;
+      margin-bottom: 6px;
     }
 
     .shift-meta,
     .student-meta {
       display: flex;
-      gap: 10px;
       flex-wrap: wrap;
+      gap: 10px 14px;
       font-size: 13px;
-      opacity: 0.9;
-      margin-top: 8px;
+      opacity: 0.95;
+    }
+
+    .seat-mini-label {
+      opacity: 0.85;
+      margin-right: 4px;
+    }
+
+    .seat-mini-value {
+      font-weight: 700;
     }
 
     .student-item {
       cursor: pointer;
-      transition: 0.2s ease;
+      transition: background 0.2s ease, transform 0.2s ease;
     }
 
     .student-item:hover {
-      background: rgba(255, 255, 255, 0.12);
+      background: rgba(255, 255, 255, 0.16);
+      transform: translateY(-1px);
     }
 
     .student-name {
       font-size: 15px;
       font-weight: 700;
       margin-bottom: 4px;
+      text-align: right;
     }
 
     .student-code {
-      font-size: 12px;
-      opacity: 0.78;
-    }
-
-    .seat-mini-label {
-      font-size: 12px;
-      opacity: 0.78;
-    }
-
-    .seat-mini-value {
-      font-size: 16px;
-      font-weight: 700;
+      font-size: 13px;
+      opacity: 0.92;
+      text-align: right;
     }
 
     .seat-modal {
@@ -293,150 +319,109 @@
       display: none;
       align-items: center;
       justify-content: center;
-      padding: 18px;
-      background: rgba(8, 12, 28, 0.44);
-      z-index: 999;
+      padding: 16px;
+      background: rgba(15, 23, 42, 0.45);
+      z-index: 9999;
     }
 
     .seat-modal.show {
       display: flex;
     }
 
-    .seat-modal-box {
+    .seat-modal-dialog {
       width: 100%;
       max-width: 520px;
       border-radius: 18px;
-      padding: 18px;
-      background: rgba(20, 28, 48, 0.92);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      background: rgba(17, 24, 39, 0.92);
       color: #fff;
-      border: 1px solid rgba(255, 255, 255, 0.14);
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.28);
+      overflow: hidden;
     }
 
-    .seat-modal-head {
+    .seat-modal-header,
+    .seat-modal-footer {
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 12px;
-      margin-bottom: 14px;
+      padding: 16px 18px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.10);
     }
 
-    .seat-modal-head h3 {
-      margin: 0;
-      font-size: 20px;
-    }
-
-    .seat-icon-btn {
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      border: 1px solid rgba(255, 255, 255, 0.16);
-      background: rgba(255, 255, 255, 0.1);
-      color: #fff;
-      cursor: pointer;
-      font-size: 18px;
-      line-height: 1;
-    }
-
-    .seat-modal-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 12px;
-    }
-
-    .seat-detail-box {
-      border-radius: 14px;
-      padding: 12px;
-      background: rgba(255, 255, 255, 0.08);
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      min-height: 74px;
-    }
-
-    .seat-detail-box.full {
-      grid-column: 1 / -1;
-    }
-
-    .seat-detail-label {
-      font-size: 12px;
-      opacity: 0.78;
-      margin-bottom: 6px;
-    }
-
-    .seat-detail-value {
-      font-size: 15px;
-      font-weight: 700;
-      word-break: break-word;
-    }
-
-    .seat-form {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 12px;
-      margin-top: 10px;
-    }
-
-    .seat-form .full {
-      grid-column: 1 / -1;
-    }
-
-    .seat-form-group label {
-      display: block;
-      font-size: 13px;
-      margin-bottom: 6px;
-      opacity: 0.88;
-    }
-
-    .seat-form-group input {
-      width: 100%;
-      border-radius: 12px;
-      border: 1px solid rgba(255, 255, 255, 0.14);
-      background: rgba(255, 255, 255, 0.1);
-      color: #fff;
-      padding: 11px 12px;
-      outline: none;
-      font-size: 14px;
-    }
-
-    .seat-form-group input::placeholder {
-      color: rgba(255, 255, 255, 0.65);
-    }
-
-    .seat-help {
-      font-size: 12px;
-      opacity: 0.78;
-      margin-top: 10px;
-      line-height: 1.5;
-    }
-
-    .seat-modal-actions {
-      margin-top: 16px;
-      display: flex;
+    .seat-modal-footer {
+      border-bottom: none;
+      border-top: 1px solid rgba(255, 255, 255, 0.10);
       justify-content: flex-end;
-      gap: 10px;
       flex-wrap: wrap;
     }
 
-    .capacity-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 6px 10px;
-      border-radius: 999px;
-      font-size: 12px;
+    .seat-modal-body {
+      padding: 18px;
+    }
+
+    .seat-modal-title {
+      margin: 0;
+      font-size: 20px;
       font-weight: 700;
-      background: rgba(255, 255, 255, 0.1);
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      margin-top: 8px;
     }
 
-    .muted-text {
-      opacity: 0.72;
+    .seat-modal-close {
+      border: none;
+      background: rgba(255, 255, 255, 0.12);
+      color: #fff;
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 18px;
     }
 
-    @media (max-width: 1024px) {
-      .seat-cards {
+    .seat-form-grid,
+    .student-details-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .seat-form-group,
+    .student-detail-item {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .seat-form-group label,
+    .student-detail-label {
+      font-size: 13px;
+      opacity: 0.82;
+    }
+
+    .seat-form-group input,
+    .student-detail-value {
+      width: 100%;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      background: rgba(255, 255, 255, 0.08);
+      color: #fff;
+      padding: 11px 12px;
+      outline: none;
+      min-height: 44px;
+      font-size: 14px;
+    }
+
+    .student-detail-value {
+      display: flex;
+      align-items: center;
+    }
+
+    .seat-form-full,
+    .student-detail-full {
+      grid-column: 1 / -1;
+    }
+
+    @media (max-width: 992px) {
+      .seat-summary-grid {
         grid-template-columns: 1fr;
       }
 
@@ -455,21 +440,22 @@
       }
 
       .seat-card-value {
-        font-size: 30px;
+        font-size: 34px;
       }
 
-      .seat-modal-grid,
-      .seat-form {
+      .seat-form-grid,
+      .student-details-grid {
         grid-template-columns: 1fr;
       }
 
-      .seat-actions,
-      .seat-header {
-        width: 100%;
+      .shift-item-row,
+      .student-item-row {
+        flex-direction: column;
       }
 
-      .seat-search {
-        max-width: 100%;
+      .student-name,
+      .student-code {
+        text-align: left;
       }
     }
   </style>
@@ -479,182 +465,180 @@
     <div class="seat-header">
       <div class="seat-title-wrap">
         <h1>Seat Management</h1>
-        <p>Realtime seat availability and occupied seat tracking for your library.</p>
+        <p>Live seat occupancy, availability and shift-wise seat status.</p>
       </div>
 
       <div class="seat-actions">
-        <button type="button" class="seat-btn primary" id="btnConfigureCapacity">Configure Capacity</button>
+        <button id="btnConfigureCapacity" class="seat-btn primary" type="button">Configure Capacity</button>
       </div>
     </div>
 
-    <div id="seatAlert" class="seat-alert info"></div>
+    <div id="seatAlert" class="seat-alert" role="alert"></div>
 
     <div class="seat-search-wrap">
       <input
         type="text"
         id="seatSearchInput"
         class="seat-search"
-        placeholder="Search occupied seats by seat number, student name or student code"
-        autocomplete="off"
+        placeholder="Search by seat number, student name or student code"
       />
     </div>
 
-    <section class="seat-cards">
-      <div class="seat-card" id="totalSeatsCard">
-        <div class="seat-card-head">
-          <div>
-            <div class="seat-card-label">Total Seats</div>
-            <div class="seat-card-value" id="totalSeatsValue">--</div>
-          </div>
+    <div class="seat-summary-grid">
+      <div id="totalCard" class="seat-card seat-card-green">
+        <div class="seat-card-top">
+          <div id="totalSeatsLabel" class="seat-card-label">Total Seats</div>
+          <div id="capacityBadge" class="seat-card-badge">Configured</div>
         </div>
-        <div class="seat-card-subtext" id="totalSeatsSubtext">
-          Loading capacity...
-        </div>
-        <div class="capacity-badge" id="capacityBadge" style="display:none;">Configured</div>
+        <div id="totalSeatsValue" class="seat-card-value">--</div>
+        <div id="totalSeatsSubtext" class="seat-card-subtext">Capacity not configured</div>
       </div>
 
-      <div class="seat-card clickable" id="availableCard" tabindex="0" role="button" aria-expanded="false">
-        <div class="seat-card-head">
-          <div>
-            <div class="seat-card-label">Available</div>
-            <div class="seat-card-value" id="availableSeatsValue">--</div>
-          </div>
-          <div class="seat-card-toggle" id="availableToggleText">View Details</div>
+      <div
+        id="availableCard"
+        class="seat-card seat-card-blue seat-card-clickable"
+        aria-expanded="false"
+        onclick="toggleSeatCardDetails('available')"
+      >
+        <div class="seat-card-top">
+          <div class="seat-card-label">Available</div>
+          <div id="availableToggleText" class="seat-card-toggle">View Details</div>
         </div>
-        <div class="seat-card-subtext" id="availableSeatsSubtext">
-          Click to view shift-wise availability.
-        </div>
+        <div id="availableSeatsValue" class="seat-card-value">--</div>
+        <div id="availableSeatsSubtext" class="seat-card-subtext">Click to view shift-wise availability</div>
 
-        <div class="seat-card-content" id="availableCardContent">
-          <div id="availableDetailsWrap" class="shift-list"></div>
+        <div id="availableCardContent" class="seat-card-content">
+          <div id="availableDetailsWrap" class="seat-card-scroll">
+            <div class="seat-empty-state">Loading availability...</div>
+          </div>
         </div>
       </div>
 
-      <div class="seat-card clickable" id="occupiedCard" tabindex="0" role="button" aria-expanded="false">
-        <div class="seat-card-head">
-          <div>
-            <div class="seat-card-label">Occupied</div>
-            <div class="seat-card-value" id="occupiedSeatsValue">--</div>
-          </div>
-          <div class="seat-card-toggle" id="occupiedToggleText">View Details</div>
+      <div
+        id="occupiedCard"
+        class="seat-card seat-card-orange seat-card-clickable"
+        aria-expanded="false"
+        onclick="toggleSeatCardDetails('occupied')"
+      >
+        <div class="seat-card-top">
+          <div class="seat-card-label">Occupied</div>
+          <div id="occupiedToggleText" class="seat-card-toggle">View Details</div>
         </div>
-        <div class="seat-card-subtext" id="occupiedSeatsSubtext">
-          Click to view occupied seat details.
-        </div>
+        <div id="occupiedSeatsValue" class="seat-card-value">0</div>
+        <div id="occupiedSeatsSubtext" class="seat-card-subtext">Click to view occupied seat details</div>
 
-        <div class="seat-card-content" id="occupiedCardContent">
-          <div id="occupiedDetailsWrap" class="student-list"></div>
+        <div id="occupiedCardContent" class="seat-card-content">
+          <div id="occupiedDetailsWrap" class="seat-card-scroll">
+            <div class="seat-empty-state">Loading occupied seats...</div>
+          </div>
         </div>
       </div>
-    </section>
+    </div>
   </div>
 
-  <div class="seat-modal" id="capacityModal" aria-hidden="true">
-    <div class="seat-modal-box">
-      <div class="seat-modal-head">
-        <h3>Configure Seat Capacity</h3>
-        <button type="button" class="seat-icon-btn" id="closeCapacityModal" aria-label="Close">×</button>
+  <div id="capacityModal" class="seat-modal" aria-hidden="true">
+    <div class="seat-modal-dialog">
+      <div class="seat-modal-header">
+        <h2 class="seat-modal-title">Configure Capacity</h2>
+        <button id="closeCapacityModal" class="seat-modal-close" type="button">&times;</button>
       </div>
 
       <form id="capacityForm">
-        <div class="seat-form">
-          <div class="seat-form-group full">
-            <label for="totalCapacityInput">Total Library Capacity</label>
-            <input type="number" id="totalCapacityInput" min="0" placeholder="Enter total library capacity" />
-          </div>
+        <div class="seat-modal-body">
+          <div class="seat-form-grid">
+            <div class="seat-form-group seat-form-full">
+              <label for="totalCapacityInput">Total Library Capacity</label>
+              <input type="number" id="totalCapacityInput" min="0" placeholder="Enter total library capacity" />
+            </div>
 
-          <div class="seat-form-group">
-            <label for="morningCapacityInput">Morning Capacity</label>
-            <input type="number" id="morningCapacityInput" min="0" placeholder="Morning capacity" />
-          </div>
+            <div class="seat-form-group">
+              <label for="morningCapacityInput">Morning Capacity</label>
+              <input type="number" id="morningCapacityInput" min="0" placeholder="Morning capacity" />
+            </div>
 
-          <div class="seat-form-group">
-            <label for="afternoonCapacityInput">Afternoon Capacity</label>
-            <input type="number" id="afternoonCapacityInput" min="0" placeholder="Afternoon capacity" />
-          </div>
+            <div class="seat-form-group">
+              <label for="afternoonCapacityInput">Afternoon Capacity</label>
+              <input type="number" id="afternoonCapacityInput" min="0" placeholder="Afternoon capacity" />
+            </div>
 
-          <div class="seat-form-group full">
-            <label for="eveningCapacityInput">Evening Capacity</label>
-            <input type="number" id="eveningCapacityInput" min="0" placeholder="Evening capacity" />
+            <div class="seat-form-group seat-form-full">
+              <label for="eveningCapacityInput">Evening Capacity</label>
+              <input type="number" id="eveningCapacityInput" min="0" placeholder="Evening capacity" />
+            </div>
           </div>
         </div>
 
-        <div class="seat-help">
-          Save capacity in the current library document. If shift fields are empty, they will automatically use the total capacity value.
-        </div>
-
-        <div class="seat-modal-actions">
-          <button type="button" class="seat-btn" id="cancelCapacityBtn">Cancel</button>
-          <button type="submit" class="seat-btn primary" id="saveCapacityBtn">Save Capacity</button>
+        <div class="seat-modal-footer">
+          <button id="cancelCapacityBtn" class="seat-btn" type="button">Cancel</button>
+          <button id="saveCapacityBtn" class="seat-btn primary" type="submit">Save Capacity</button>
         </div>
       </form>
     </div>
   </div>
 
-  <div class="seat-modal" id="studentModal" aria-hidden="true">
-    <div class="seat-modal-box">
-      <div class="seat-modal-head">
-        <h3>Student Details</h3>
-        <button type="button" class="seat-icon-btn" id="closeStudentModal" aria-label="Close">×</button>
+  <div id="studentModal" class="seat-modal" aria-hidden="true">
+    <div class="seat-modal-dialog">
+      <div class="seat-modal-header">
+        <h2 class="seat-modal-title">Student Details</h2>
+        <button id="closeStudentModal" class="seat-modal-close" type="button">&times;</button>
       </div>
 
-      <div class="seat-modal-grid">
-        <div class="seat-detail-box">
-          <div class="seat-detail-label">Seat Number</div>
-          <div class="seat-detail-value" id="modalSeatNumber">-</div>
-        </div>
+      <div class="seat-modal-body">
+        <div class="student-details-grid">
+          <div class="student-detail-item">
+            <div class="student-detail-label">Seat Number</div>
+            <div id="modalSeatNumber" class="student-detail-value">-</div>
+          </div>
 
-        <div class="seat-detail-box">
-          <div class="seat-detail-label">Student Code</div>
-          <div class="seat-detail-value" id="modalStudentCode">-</div>
-        </div>
+          <div class="student-detail-item">
+            <div class="student-detail-label">Student Code</div>
+            <div id="modalStudentCode" class="student-detail-value">-</div>
+          </div>
 
-        <div class="seat-detail-box full">
-          <div class="seat-detail-label">Student Name</div>
-          <div class="seat-detail-value" id="modalStudentName">-</div>
-        </div>
+          <div class="student-detail-item">
+            <div class="student-detail-label">Student Name</div>
+            <div id="modalStudentName" class="student-detail-value">-</div>
+          </div>
 
-        <div class="seat-detail-box">
-          <div class="seat-detail-label">Father Name</div>
-          <div class="seat-detail-value" id="modalFatherName">-</div>
-        </div>
+          <div class="student-detail-item">
+            <div class="student-detail-label">Father Name</div>
+            <div id="modalFatherName" class="student-detail-value">-</div>
+          </div>
 
-        <div class="seat-detail-box">
-          <div class="seat-detail-label">Class</div>
-          <div class="seat-detail-value" id="modalStudentClass">-</div>
-        </div>
+          <div class="student-detail-item">
+            <div class="student-detail-label">Class</div>
+            <div id="modalStudentClass" class="student-detail-value">-</div>
+          </div>
 
-        <div class="seat-detail-box">
-          <div class="seat-detail-label">Shift</div>
-          <div class="seat-detail-value" id="modalStudentShift">-</div>
-        </div>
+          <div class="student-detail-item">
+            <div class="student-detail-label">Shift</div>
+            <div id="modalStudentShift" class="student-detail-value">-</div>
+          </div>
 
-        <div class="seat-detail-box">
-          <div class="seat-detail-label">Status</div>
-          <div class="seat-detail-value" id="modalStudentStatus">-</div>
-        </div>
+          <div class="student-detail-item">
+            <div class="student-detail-label">Status</div>
+            <div id="modalStudentStatus" class="student-detail-value">-</div>
+          </div>
 
-        <div class="seat-detail-box">
-          <div class="seat-detail-label">Joining Date</div>
-          <div class="seat-detail-value" id="modalJoiningDate">-</div>
-        </div>
+          <div class="student-detail-item">
+            <div class="student-detail-label">Joining Date</div>
+            <div id="modalJoiningDate" class="student-detail-value">-</div>
+          </div>
 
-        <div class="seat-detail-box">
-          <div class="seat-detail-label">Expiry Date</div>
-          <div class="seat-detail-value" id="modalExpiryDate">-</div>
+          <div class="student-detail-item student-detail-full">
+            <div class="student-detail-label">Expiry Date</div>
+            <div id="modalExpiryDate" class="student-detail-value">-</div>
+          </div>
         </div>
       </div>
 
-      <div class="seat-modal-actions">
-        <button type="button" class="seat-btn" id="closeStudentDetailsBtn">Close</button>
-        <button type="button" class="seat-btn primary" id="openStudentProfileBtn">Open Student Profile</button>
+      <div class="seat-modal-footer">
+        <button id="closeStudentDetailsBtn" class="seat-btn" type="button">Close</button>
+        <button id="openStudentProfileBtn" class="seat-btn primary" type="button">Open Profile</button>
       </div>
     </div>
   </div>
 
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
   <script src="../js/dashboard.js"></script>
   <script src="../js/seats.js"></script>
 </body>
