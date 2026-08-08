@@ -45,60 +45,53 @@
 
                 <button
                     class="add-student-trigger"
-                    id="save-attendance-btn">
+                    id="save-attendance-btn"
+                    type="button">
 
                     Save Attendance
 
                 </button>
 
             </div>
+
             <!-- Top Control Panel -->
             <div class="search-filter-panel glass">
 
-              <div class="search-box">
-    <input
-        type="text"
-        id="attendance-search-input"
-        placeholder="Search by Student Name, Code or Seat...">
-</div>
+                <div class="search-box">
+                    <input
+                        type="text"
+                        id="attendance-search-input"
+                        placeholder="Search by Student Name, Code or Seat...">
+                </div>
 
-<button
-    id="save-attendance-btn"
-    class="btn-primary">
+                <div class="filter-actions">
 
-    Save Attendance
+                    <div class="form-group">
+                        <label for="attendance-date">
+                            Attendance Date
+                        </label>
 
-</button>
+                        <input
+                            type="date"
+                            id="attendance-date">
+                    </div>
 
-<div class="filter-actions">
+                    <div class="form-group">
+                        <label for="attendance-shift">
+                            Shift
+                        </label>
 
-    <div class="form-group">
-        <label for="attendance-date">
-            Attendance Date
-        </label>
-
-        <input
-            type="date"
-            id="attendance-date">
-    </div>
-
-    <div class="form-group">
-        <label for="attendance-shift">
-            Shift
-        </label>
-
-        <select id="attendance-shift">
-            <option value="Morning">Morning</option>
-            <option value="Afternoon">Afternoon</option>
-            <option value="Evening">Evening</option>
-        </select>
-    </div>
-
-</div>
+                        <select id="attendance-shift">
+                            <option value="Morning">Morning</option>
+                            <option value="Afternoon">Afternoon</option>
+                            <option value="Evening">Evening</option>
+                        </select>
+                    </div>
 
                 </div>
 
             </div>
+
             <!-- Attendance Table -->
             <div class="students-table-card glass">
 
@@ -106,20 +99,18 @@
 
                     <table class="students-data-table">
 
-                       <thead>
- <tr>
-    <th>Student Code</th>
-    <th>Seat</th>
-    <th>Student Name</th>
-    <th>Present</th>
-    <th>Absent</th>
-</tr>
-</thead>
+                        <thead>
+                            <tr>
+                                <th>Student Code</th>
+                                <th>Seat</th>
+                                <th>Student Name</th>
+                                <th>Present</th>
+                                <th>Absent</th>
+                            </tr>
+                        </thead>
 
                         <tbody id="attendance-table-body">
-
                             <!-- Dynamic Attendance Rows -->
-
                         </tbody>
 
                     </table>
@@ -127,7 +118,8 @@
                 </div>
 
             </div>
-            </main>
+
+        </main>
 
         <!-- Footer -->
         <div id="footer-container"></div>
@@ -135,20 +127,27 @@
     </div>
 
 </div>
-<!-- Attendance Modal (Future Use) -->
+
+<!-- Attendance History Modal -->
 <div
     class="modal-overlay"
-    id="attendance-modal">
+    id="attendance-history-modal">
 
-    <div class="modal-window glass">
+    <div class="modal-window glass attendance-history-window">
 
         <div class="modal-header">
 
-            <h2>Attendance Details</h2>
+            <div>
+                <h2>Attendance Details</h2>
+                <p class="attendance-modal-subtext">
+                    Student summary and saved attendance history
+                </p>
+            </div>
 
             <button
                 class="close-modal-btn"
-                id="close-attendance-modal">
+                id="close-attendance-history-modal"
+                type="button">
 
                 ×
 
@@ -156,11 +155,25 @@
 
         </div>
 
-        <div class="modal-form">
+        <div class="modal-form attendance-history-layout">
 
-            <p>
-                Future attendance features will be added here.
-            </p>
+            <div
+                class="attendance-stats-grid"
+                id="attendance-history-summary">
+            </div>
+
+            <div class="attendance-history-table-card">
+                <table class="students-data-table attendance-history-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Shift</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="attendance-history-body"></tbody>
+                </table>
+            </div>
 
         </div>
 
