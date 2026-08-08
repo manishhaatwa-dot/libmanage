@@ -1,556 +1,638 @@
 (function () {
+  "use strict";
+
+  function showFatalError(message) {
+    var alertBox = document.getElementById("seatAlert");
+    if (alertBox) {
+      alertBox.className = "seat-alert error show";
+      alertBox.textContent = message;
+    }
+  }
+
+  if (typeof window.firebase === "undefined" || !firebase.apps || !firebase.apps.length) {
+    document.addEventListener("DOMContentLoaded", function () {
+      showFatalError("Firebase SDK not loaded or initialized before seats.js.");
+    });
+    return;
+  }
+
   var db = firebase.firestore();
-  var libraryId = sessionStorage.getItem("session_library_id");
-  var role = sessionStorage.getItem("session_role");
 
-  var state = {
-    students: [],
-    capacity: {
-      total: null,
-      morning: null,
-      afternoon: null,
-      evening: null
-    },
-    searchTerm: "",
-    selectedStudent: null,
-    libraryUnsubscribe: null,
-    studentsUnsubscribe: null
-  };
+  document.addEventListener("DOMContentLoaded", function () {
+    var role = sessionStorage.getItem("session_role");
+    var libraryId = sessionStorage.getItem("session_library_id");
 
-  var els = {};
+    var elements = {
+      seatAlert: document.getElementById("seatAlert"),
 
-  window.toggleSeatCardDetails = function (type) {
-    if (type === "available") {
-      toggleAvailableCard();
-    } else if (type === "occupied") {
-      toggleOccupiedCard();
-    }
-  };
+      btnConfigureCapacity: document.getElementById("btnConfigureCapacity"),
 
-  document.addEventListener("DOMContentLoaded", init);
+      totalCard: document.getElementById("totalCard"),
+      totalSeatsLabel: document.getElementById("totalSeatsLabel"),
+      totalSeatsValue: document.getElementById("totalSeatsValue"),
+      totalSeatsSubtext: document.getElementById("totalSeatsSubtext"),
+      capacityBadge: document.getElementById("capacityBadge"),
 
-  function init() {
-    cacheDom();
-    checkAccess();
-    bindEvents();
-    attachRealtimeListeners();
-    renderAll();
-  }
+      availableCard: document.getElementById("availableCard"),
+      availableToggleText: document.getElementById("availableToggleText"),
+      availableSeatsValue: document.getElementById("availableSeatsValue"),
+      availableSeatsSubtext: document.getElementById("availableSeatsSubtext"),
+      availableCardContent: document.getElementById("availableCardContent"),
+      availableDetailsWrap: document.getElementById("availableDetailsWrap"),
 
-  function cacheDom() {
-    els.alert = document.getElementById("seatAlert");
+      occupiedCard: document.getElementById("occupiedCard"),
+      occupiedToggleText: document.getElementById("occupiedToggleText"),
+      occupiedSeatsValue: document.getElementById("occupiedSeatsValue"),
+      occupiedSeatsSubtext: document.getElementById("occupiedSeatsSubtext"),
+      occupiedCardContent: document.getElementById("occupiedCardContent"),
+      occupiedDetailsWrap: document.getElementById("occupiedDetailsWrap"),
 
-    els.totalSeatsValue = document.getElementById("totalSeatsValue");
-    els.availableSeatsValue = document.getElementById("availableSeatsValue");
-    els.occupiedSeatsValue = document.getElementById("occupiedSeatsValue");
+      seatSearchInput: document.getElementById("seatSearchInput"),
 
-    els.totalSeatsSubtext = document.getElementById("totalSeatsSubtext");
-    els.availableSeatsSubtext = document.getElementById("availableSeatsSubtext");
-    els.occupiedSeatsSubtext = document.getElementById("occupiedSeatsSubtext");
-    els.capacityBadge = document.getElementById("capacityBadge");
+      capacityModal: document.getElementById("capacityModal"),
+      closeCapacityModal: document.getElementById("closeCapacityModal"),
+      cancelCapacityBtn: document.getElementById("cancelCapacityBtn"),
+      capacityForm: document.getElementById("capacityForm"),
+      totalCapacityInput: document.getElementById("totalCapacityInput"),
+      morningCapacityInput: document.getElementById("morningCapacityInput"),
+      afternoonCapacityInput: document.getElementById("afternoonCapacityInput"),
+      eveningCapacityInput: document.getElementById("eveningCapacityInput"),
+      saveCapacityBtn: document.getElementById("saveCapacityBtn"),
 
-    els.searchInput = document.getElementById("seatSearchInput");
-
-    els.availableCard = document.getElementById("availableCard");
-    els.occupiedCard = document.getElementById("occupiedCard");
-    els.availableCardContent = document.getElementById("availableCardContent");
-    els.occupiedCardContent = document.getElementById("occupiedCardContent");
-    els.availableDetailsWrap = document.getElementById("availableDetailsWrap");
-    els.occupiedDetailsWrap = document.getElementById("occupiedDetailsWrap");
-    els.availableToggleText = document.getElementById("availableToggleText");
-    els.occupiedToggleText = document.getElementById("occupiedToggleText");
-
-    els.btnConfigureCapacity = document.getElementById("btnConfigureCapacity");
-
-    els.capacityModal = document.getElementById("capacityModal");
-    els.closeCapacityModal = document.getElementById("closeCapacityModal");
-    els.cancelCapacityBtn = document.getElementById("cancelCapacityBtn");
-    els.capacityForm = document.getElementById("capacityForm");
-    els.totalCapacityInput = document.getElementById("totalCapacityInput");
-    els.morningCapacityInput = document.getElementById("morningCapacityInput");
-    els.afternoonCapacityInput = document.getElementById("afternoonCapacityInput");
-    els.eveningCapacityInput = document.getElementById("eveningCapacityInput");
-    els.saveCapacityBtn = document.getElementById("saveCapacityBtn");
-
-    els.studentModal = document.getElementById("studentModal");
-    els.closeStudentModal = document.getElementById("closeStudentModal");
-    els.closeStudentDetailsBtn = document.getElementById("closeStudentDetailsBtn");
-    els.openStudentProfileBtn = document.getElementById("openStudentProfileBtn");
-
-    els.modalSeatNumber = document.getElementById("modalSeatNumber");
-    els.modalStudentCode = document.getElementById("modalStudentCode");
-    els.modalStudentName = document.getElementById("modalStudentName");
-    els.modalFatherName = document.getElementById("modalFatherName");
-    els.modalStudentClass = document.getElementById("modalStudentClass");
-    els.modalStudentShift = document.getElementById("modalStudentShift");
-    els.modalStudentStatus = document.getElementById("modalStudentStatus");
-    els.modalJoiningDate = document.getElementById("modalJoiningDate");
-    els.modalExpiryDate = document.getElementById("modalExpiryDate");
-  }
-
-  function checkAccess() {
-    if (role !== "admin") {
-      showAlert("Only admin can access Seat Management.", "error");
-      return;
-    }
+      studentModal: document.getElementById("studentModal"),
+      closeStudentModal: document.getElementById("closeStudentModal"),
+      closeStudentDetailsBtn: document.getElementById("closeStudentDetailsBtn"),
+      modalSeatNumber: document.getElementById("modalSeatNumber"),
+      modalStudentCode: document.getElementById("modalStudentCode"),
+      modalStudentName: document.getElementById("modalStudentName"),
+      modalFatherName: document.getElementById("modalFatherName"),
+      modalStudentClass: document.getElementById("modalStudentClass"),
+      modalStudentShift: document.getElementById("modalStudentShift"),
+      modalStudentStatus: document.getElementById("modalStudentStatus"),
+      modalJoiningDate: document.getElementById("modalJoiningDate"),
+      modalExpiryDate: document.getElementById("modalExpiryDate")
+    };
 
     if (!libraryId) {
-      showAlert("Library session not found. Please login again.", "error");
+      showAlert("Library session not found.", "error");
+      disablePage();
       return;
     }
-  }
 
-  function bindEvents() {
-    if (els.availableCard) {
-      els.availableCard.onclick = function (e) {
-        var studentItem = findParentByClass(e.target, "student-item");
-        if (studentItem) return;
-        toggleAvailableCard();
+    if (role !== "admin") {
+      showAlert("Only admin can access Seat Management.", "error");
+      disablePage();
+      hideAdminActions();
+      return;
+    }
+
+    var state = {
+      libraryId: libraryId,
+      role: role,
+      libraryCapacity: {
+        totalCapacity: 0,
+        morningCapacity: 0,
+        afternoonCapacity: 0,
+        eveningCapacity: 0
+      },
+      students: [],
+      searchTerm: "",
+      expandedCard: null,
+      unsubscribers: []
+    };
+
+    var libraryRef = db.collection("saas_libraries").doc(libraryId);
+    var studentsRef = libraryRef.collection("students");
+
+    bindEvents();
+    startRealtimeListeners();
+
+    function bindEvents() {
+      if (elements.availableCard) {
+        elements.availableCard.addEventListener("click", function () {
+          toggleCard("available");
+        });
+        elements.availableCard.addEventListener("keydown", function (event) {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            toggleCard("available");
+          }
+        });
+      }
+
+      if (elements.occupiedCard) {
+        elements.occupiedCard.addEventListener("click", function () {
+          toggleCard("occupied");
+        });
+        elements.occupiedCard.addEventListener("keydown", function (event) {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            toggleCard("occupied");
+          }
+        });
+      }
+
+      if (elements.seatSearchInput) {
+        elements.seatSearchInput.addEventListener("input", function (event) {
+          state.searchTerm = String(event.target.value || "").trim().toLowerCase();
+          renderAll();
+        });
+      }
+
+      if (elements.btnConfigureCapacity) {
+        elements.btnConfigureCapacity.addEventListener("click", function () {
+          openCapacityModal();
+        });
+      }
+
+      if (elements.closeCapacityModal) {
+        elements.closeCapacityModal.addEventListener("click", closeCapacityModal);
+      }
+
+      if (elements.cancelCapacityBtn) {
+        elements.cancelCapacityBtn.addEventListener("click", closeCapacityModal);
+      }
+
+      if (elements.capacityModal) {
+        elements.capacityModal.addEventListener("click", function (event) {
+          if (event.target === elements.capacityModal) {
+            closeCapacityModal();
+          }
+        });
+      }
+
+      if (elements.capacityForm) {
+        elements.capacityForm.addEventListener("submit", saveCapacity);
+      }
+
+      if (elements.closeStudentModal) {
+        elements.closeStudentModal.addEventListener("click", closeStudentModal);
+      }
+
+      if (elements.closeStudentDetailsBtn) {
+        elements.closeStudentDetailsBtn.addEventListener("click", closeStudentModal);
+      }
+
+      if (elements.studentModal) {
+        elements.studentModal.addEventListener("click", function (event) {
+          if (event.target === elements.studentModal) {
+            closeStudentModal();
+          }
+        });
+      }
+
+      document.addEventListener("keydown", function (event) {
+        if (event.key === "Escape") {
+          closeCapacityModal();
+          closeStudentModal();
+        }
+      });
+    }
+
+    function startRealtimeListeners() {
+      var unsubscribeLibrary = libraryRef.onSnapshot(function (docSnap) {
+        var data = docSnap.exists ? (docSnap.data() || {}) : {};
+        state.libraryCapacity = {
+          totalCapacity: toNumber(data.totalCapacity),
+          morningCapacity: toNumber(data.morningCapacity),
+          afternoonCapacity: toNumber(data.afternoonCapacity),
+          eveningCapacity: toNumber(data.eveningCapacity)
+        };
+        renderAll();
+      }, function (error) {
+        console.error("Library listener error:", error);
+        showAlert("Failed to load capacity data.", "error");
+      });
+
+      var unsubscribeStudents = studentsRef.onSnapshot(function (snapshot) {
+        var list = [];
+
+        snapshot.forEach(function (doc) {
+          var data = doc.data() || {};
+          list.push({
+            id: doc.id,
+            studentCode: safeString(data.studentCode),
+            seatNumber: safeString(data.seatNumber),
+            name: safeString(data.name),
+            fatherName: safeString(data.fatherName),
+            studentClass: safeString(data.studentClass),
+            shift: normalizeShift(data.shift),
+            joiningDate: formatDateValue(data.joiningDate),
+            expiryDate: formatDateValue(data.expiryDate),
+            status: safeString(data.status)
+          });
+        });
+
+        state.students = list;
+        renderAll();
+      }, function (error) {
+        console.error("Students listener error:", error);
+        showAlert("Failed to load students data.", "error");
+      });
+
+      state.unsubscribers.push(unsubscribeLibrary, unsubscribeStudents);
+
+      window.addEventListener("beforeunload", function () {
+        state.unsubscribers.forEach(function (unsubscribe) {
+          if (typeof unsubscribe === "function") {
+            unsubscribe();
+          }
+        });
+      });
+    }
+
+    function renderAll() {
+      var summary = buildSummary();
+      renderTotalCard(summary);
+      renderAvailableCard(summary);
+      renderOccupiedCard(summary);
+      updateCapacityButtonState();
+    }
+
+    function buildSummary() {
+      var occupiedStudents = state.students.filter(isStudentOccupied);
+      var filteredOccupiedStudents = occupiedStudents.filter(matchesSearch);
+
+      var morningOccupied = occupiedStudents.filter(function (student) {
+        return student.shift === "Morning";
+      }).length;
+
+      var afternoonOccupied = occupiedStudents.filter(function (student) {
+        return student.shift === "Afternoon";
+      }).length;
+
+      var eveningOccupied = occupiedStudents.filter(function (student) {
+        return student.shift === "Evening";
+      }).length;
+
+      var totalCapacity = toNumber(state.libraryCapacity.totalCapacity);
+      var morningCapacity = toNumber(state.libraryCapacity.morningCapacity);
+      var afternoonCapacity = toNumber(state.libraryCapacity.afternoonCapacity);
+      var eveningCapacity = toNumber(state.libraryCapacity.eveningCapacity);
+
+      return {
+        capacities: {
+          total: totalCapacity,
+          morning: morningCapacity,
+          afternoon: afternoonCapacity,
+          evening: eveningCapacity
+        },
+        occupiedCount: occupiedStudents.length,
+        availableCount: clampNumber(totalCapacity - occupiedStudents.length),
+        morningOccupied: morningOccupied,
+        afternoonOccupied: afternoonOccupied,
+        eveningOccupied: eveningOccupied,
+        morningAvailable: clampNumber(morningCapacity - morningOccupied),
+        afternoonAvailable: clampNumber(afternoonCapacity - afternoonOccupied),
+        eveningAvailable: clampNumber(eveningCapacity - eveningOccupied),
+        occupiedStudents: occupiedStudents,
+        filteredOccupiedStudents: filteredOccupiedStudents
       };
     }
 
-    if (els.occupiedCard) {
-      els.occupiedCard.onclick = function (e) {
-        var studentItem = findParentByClass(e.target, "student-item");
-        if (studentItem) {
-          var studentId = studentItem.getAttribute("data-student-id");
-          var student = getStudentById(studentId);
+    function renderTotalCard(summary) {
+      if (elements.totalSeatsValue) {
+        elements.totalSeatsValue.textContent = String(summary.capacities.total || 0);
+      }
+
+      var configured = hasAnyCapacityConfigured(summary.capacities);
+
+      if (elements.capacityBadge) {
+        elements.capacityBadge.classList.toggle("show", configured);
+      }
+
+      if (elements.totalSeatsSubtext) {
+        if (configured) {
+          elements.totalSeatsSubtext.textContent =
+            "Morning " + summary.capacities.morning +
+            " • Afternoon " + summary.capacities.afternoon +
+            " • Evening " + summary.capacities.evening;
+        } else {
+          elements.totalSeatsSubtext.textContent = "Capacity not configured";
+        }
+      }
+    }
+
+    function renderAvailableCard(summary) {
+      if (elements.availableSeatsValue) {
+        elements.availableSeatsValue.textContent = String(summary.availableCount);
+      }
+
+      if (elements.availableSeatsSubtext) {
+        elements.availableSeatsSubtext.textContent =
+          "Morning " + summary.morningAvailable +
+          " • Afternoon " + summary.afternoonAvailable +
+          " • Evening " + summary.eveningAvailable;
+      }
+
+      if (elements.availableDetailsWrap) {
+        elements.availableDetailsWrap.innerHTML =
+          createShiftAvailabilityHtml("Morning", summary.capacities.morning, summary.morningOccupied, summary.morningAvailable) +
+          createShiftAvailabilityHtml("Afternoon", summary.capacities.afternoon, summary.afternoonOccupied, summary.afternoonAvailable) +
+          createShiftAvailabilityHtml("Evening", summary.capacities.evening, summary.eveningOccupied, summary.eveningAvailable);
+      }
+    }
+
+    function renderOccupiedCard(summary) {
+      if (elements.occupiedSeatsValue) {
+        elements.occupiedSeatsValue.textContent = String(summary.occupiedCount);
+      }
+
+      if (elements.occupiedSeatsSubtext) {
+        if (state.searchTerm) {
+          elements.occupiedSeatsSubtext.textContent =
+            summary.filteredOccupiedStudents.length + " matched occupied student(s)";
+        } else {
+          elements.occupiedSeatsSubtext.textContent = "Click to view occupied seat details";
+        }
+      }
+
+      if (!elements.occupiedDetailsWrap) {
+        return;
+      }
+
+      if (!summary.filteredOccupiedStudents.length) {
+        elements.occupiedDetailsWrap.innerHTML = '<div class="seat-empty-state">' +
+          (state.searchTerm ? "No occupied students matched your search." : "No occupied students found.") +
+          "</div>";
+        return;
+      }
+
+      elements.occupiedDetailsWrap.innerHTML = summary.filteredOccupiedStudents.map(function (student) {
+        return [
+          '<div class="student-item" data-student-id="', escapeHtml(student.id), '">',
+            '<div class="student-item-row">',
+              '<div>',
+                '<div class="student-seat">Seat ', escapeHtml(student.seatNumber || "-"), '</div>',
+                '<div class="student-meta">',
+                  '<span><span class="seat-mini-label">Shift:</span><span class="seat-mini-value">', escapeHtml(student.shift || "-"), '</span></span>',
+                  '<span><span class="seat-mini-label">Status:</span><span class="seat-mini-value">', escapeHtml(student.status || "-"), '</span></span>',
+                '</div>',
+              '</div>',
+              '<div>',
+                '<div class="student-name">', escapeHtml(student.name || "-"), '</div>',
+                '<div class="student-code">', escapeHtml(student.studentCode || "-"), '</div>',
+              '</div>',
+            '</div>',
+          '</div>'
+        ].join("");
+      }).join("");
+
+      bindStudentItemClicks(summary.filteredOccupiedStudents);
+    }
+
+    function bindStudentItemClicks(studentList) {
+      var items = elements.occupiedDetailsWrap.querySelectorAll(".student-item");
+      Array.prototype.forEach.call(items, function (item) {
+        item.addEventListener("click", function (event) {
+          event.stopPropagation();
+          var studentId = item.getAttribute("data-student-id");
+          var student = findStudentById(studentList, studentId);
           if (student) {
             openStudentModal(student);
           }
-          return;
-        }
-        toggleOccupiedCard();
-      };
-    }
-
-    if (els.searchInput) {
-      els.searchInput.oninput = function () {
-        state.searchTerm = (els.searchInput.value || "").toLowerCase().trim();
-        renderOccupiedDetails();
-      };
-    }
-
-    if (els.btnConfigureCapacity) {
-      els.btnConfigureCapacity.onclick = function () {
-        fillCapacityForm();
-        openModal(els.capacityModal);
-      };
-    }
-
-    if (els.closeCapacityModal) {
-      els.closeCapacityModal.onclick = function () {
-        closeModal(els.capacityModal);
-      };
-    }
-
-    if (els.cancelCapacityBtn) {
-      els.cancelCapacityBtn.onclick = function () {
-        closeModal(els.capacityModal);
-      };
-    }
-
-    if (els.capacityForm) {
-      els.capacityForm.onsubmit = saveCapacity;
-    }
-
-    if (els.closeStudentModal) {
-      els.closeStudentModal.onclick = function () {
-        closeModal(els.studentModal);
-      };
-    }
-
-    if (els.closeStudentDetailsBtn) {
-      els.closeStudentDetailsBtn.onclick = function () {
-        closeModal(els.studentModal);
-      };
-    }
-
-    if (els.openStudentProfileBtn) {
-      els.openStudentProfileBtn.onclick = function () {
-        if (!state.selectedStudent) return;
-        sessionStorage.setItem("selected_student_id", state.selectedStudent.id);
-        window.location.href = "./student-profile.html?id=" + encodeURIComponent(state.selectedStudent.id);
-      };
-    }
-  }
-
-  function attachRealtimeListeners() {
-    if (!libraryId) return;
-
-    var libraryRef = db.collection("saas_libraries").doc(libraryId);
-    var studentsRef = db.collection("saas_libraries").doc(libraryId).collection("students");
-
-    state.libraryUnsubscribe = libraryRef.onSnapshot(function (doc) {
-      var data = doc.exists ? (doc.data() || {}) : {};
-      state.capacity.total = parseNumber(data.totalCapacity);
-      state.capacity.morning = parseNumber(data.morningCapacity);
-      state.capacity.afternoon = parseNumber(data.afternoonCapacity);
-      state.capacity.evening = parseNumber(data.eveningCapacity);
-      fillCapacityForm();
-      renderSummary();
-      renderAvailableDetails();
-    }, function (error) {
-      console.error("Library listener error:", error);
-      showAlert("Capacity load failed.", "error");
-    });
-
-    state.studentsUnsubscribe = studentsRef.onSnapshot(function (snapshot) {
-      var rows = [];
-
-      snapshot.forEach(function (doc) {
-        var data = doc.data() || {};
-        if (String(data.seatNumber || "").trim() !== "") {
-          rows.push({
-            id: doc.id,
-            seatNumber: String(data.seatNumber || "").trim(),
-            studentCode: String(data.studentCode || "").trim(),
-            name: String(data.name || "").trim(),
-            fatherName: String(data.fatherName || "").trim(),
-            studentClass: String(data.studentClass || "").trim(),
-            shift: normalizeShift(data.shift),
-            joiningDate: formatDate(data.joiningDate),
-            expiryDate: formatDate(data.expiryDate),
-            status: String(data.status || "").trim()
-          });
-        }
+        });
       });
+    }
 
-      rows.sort(function (a, b) {
-        return compareSeat(a.seatNumber, b.seatNumber);
+    function toggleCard(cardName) {
+      var isAvailable = cardName === "available";
+      var card = isAvailable ? elements.availableCard : elements.occupiedCard;
+      var otherCard = isAvailable ? elements.occupiedCard : elements.availableCard;
+      var toggleText = isAvailable ? elements.availableToggleText : elements.occupiedToggleText;
+      var otherToggleText = isAvailable ? elements.occupiedToggleText : elements.availableToggleText;
+
+      var isExpanded = card.classList.contains("expanded");
+
+      if (otherCard) {
+        otherCard.classList.remove("expanded");
+        otherCard.setAttribute("aria-expanded", "false");
+      }
+      if (otherToggleText) {
+        otherToggleText.textContent = "View Details";
+      }
+
+      if (isExpanded) {
+        card.classList.remove("expanded");
+        card.setAttribute("aria-expanded", "false");
+        if (toggleText) {
+          toggleText.textContent = "View Details";
+        }
+        state.expandedCard = null;
+      } else {
+        card.classList.add("expanded");
+        card.setAttribute("aria-expanded", "true");
+        if (toggleText) {
+          toggleText.textContent = "Hide Details";
+        }
+        state.expandedCard = cardName;
+      }
+    }
+
+    function openCapacityModal() {
+      elements.totalCapacityInput.value = toNumber(state.libraryCapacity.totalCapacity) || "";
+      elements.morningCapacityInput.value = toNumber(state.libraryCapacity.morningCapacity) || "";
+      elements.afternoonCapacityInput.value = toNumber(state.libraryCapacity.afternoonCapacity) || "";
+      elements.eveningCapacityInput.value = toNumber(state.libraryCapacity.eveningCapacity) || "";
+      elements.capacityModal.classList.add("show");
+      elements.capacityModal.setAttribute("aria-hidden", "false");
+    }
+
+    function closeCapacityModal() {
+      elements.capacityModal.classList.remove("show");
+      elements.capacityModal.setAttribute("aria-hidden", "true");
+    }
+
+    function openStudentModal(student) {
+      elements.modalSeatNumber.textContent = student.seatNumber || "-";
+      elements.modalStudentCode.textContent = student.studentCode || "-";
+      elements.modalStudentName.textContent = student.name || "-";
+      elements.modalFatherName.textContent = student.fatherName || "-";
+      elements.modalStudentClass.textContent = student.studentClass || "-";
+      elements.modalStudentShift.textContent = student.shift || "-";
+      elements.modalStudentStatus.textContent = student.status || "-";
+      elements.modalJoiningDate.textContent = student.joiningDate || "-";
+      elements.modalExpiryDate.textContent = student.expiryDate || "-";
+      elements.studentModal.classList.add("show");
+      elements.studentModal.setAttribute("aria-hidden", "false");
+    }
+
+    function closeStudentModal() {
+      elements.studentModal.classList.remove("show");
+      elements.studentModal.setAttribute("aria-hidden", "true");
+    }
+
+    function saveCapacity(event) {
+      event.preventDefault();
+
+      var totalCapacity = toNumber(elements.totalCapacityInput.value);
+      var morningCapacity = toNumber(elements.morningCapacityInput.value);
+      var afternoonCapacity = toNumber(elements.afternoonCapacityInput.value);
+      var eveningCapacity = toNumber(elements.eveningCapacityInput.value);
+
+      if (totalCapacity < 0 || morningCapacity < 0 || afternoonCapacity < 0 || eveningCapacity < 0) {
+        showAlert("Capacity values cannot be negative.", "error");
+        return;
+      }
+
+      elements.saveCapacityBtn.disabled = true;
+      elements.saveCapacityBtn.textContent = "Saving...";
+
+      libraryRef.set({
+        totalCapacity: totalCapacity,
+        morningCapacity: morningCapacity,
+        afternoonCapacity: afternoonCapacity,
+        eveningCapacity: eveningCapacity,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      }, { merge: true }).then(function () {
+        showAlert("Capacity saved successfully.", "success");
+        closeCapacityModal();
+      }).catch(function (error) {
+        console.error("Save capacity error:", error);
+        showAlert("Failed to save capacity.", "error");
+      }).finally(function () {
+        elements.saveCapacityBtn.disabled = false;
+        elements.saveCapacityBtn.textContent = "Save Capacity";
       });
-
-      state.students = rows;
-      renderSummary();
-      renderAvailableDetails();
-      renderOccupiedDetails();
-    }, function (error) {
-      console.error("Students listener error:", error);
-      showAlert("Students load failed.", "error");
-    });
-  }
-
-  function renderAll() {
-    renderSummary();
-    renderAvailableDetails();
-    renderOccupiedDetails();
-  }
-
-  function toggleAvailableCard() {
-    if (!els.availableCard || !els.availableCardContent) return;
-    var isExpanded = els.availableCard.classList.contains("expanded");
-
-    if (isExpanded) {
-      els.availableCard.classList.remove("expanded");
-      els.availableCardContent.style.display = "none";
-      els.availableCard.setAttribute("aria-expanded", "false");
-      if (els.availableToggleText) els.availableToggleText.textContent = "View Details";
-    } else {
-      els.availableCard.classList.add("expanded");
-      els.availableCardContent.style.display = "block";
-      els.availableCard.setAttribute("aria-expanded", "true");
-      if (els.availableToggleText) els.availableToggleText.textContent = "Hide Details";
-      renderAvailableDetails();
     }
-  }
 
-  function toggleOccupiedCard() {
-    if (!els.occupiedCard || !els.occupiedCardContent) return;
-    var isExpanded = els.occupiedCard.classList.contains("expanded");
-
-    if (isExpanded) {
-      els.occupiedCard.classList.remove("expanded");
-      els.occupiedCardContent.style.display = "none";
-      els.occupiedCard.setAttribute("aria-expanded", "false");
-      if (els.occupiedToggleText) els.occupiedToggleText.textContent = "View Details";
-    } else {
-      els.occupiedCard.classList.add("expanded");
-      els.occupiedCardContent.style.display = "block";
-      els.occupiedCard.setAttribute("aria-expanded", "true");
-      if (els.occupiedToggleText) els.occupiedToggleText.textContent = "Hide Details";
-      renderOccupiedDetails();
-    }
-  }
-
-  function renderSummary() {
-    if (!els.occupiedSeatsValue || !els.totalSeatsValue || !els.availableSeatsValue) return;
-
-    var occupied = state.students.length;
-    var totalCapacity = parseNumber(state.capacity.total);
-    var totalConfigured = totalCapacity !== null;
-    var available = totalConfigured ? Math.max(totalCapacity - occupied, 0) : null;
-
-    els.occupiedSeatsValue.textContent = occupied;
-
-    if (totalConfigured) {
-      els.totalSeatsValue.textContent = totalCapacity;
-      els.availableSeatsValue.textContent = available;
-      if (els.totalSeatsSubtext) els.totalSeatsSubtext.textContent = "Configured library capacity";
-      if (els.availableSeatsSubtext) els.availableSeatsSubtext.textContent = "Click to view shift-wise availability";
-      if (els.capacityBadge) {
-        els.capacityBadge.style.display = "inline-flex";
-        els.capacityBadge.textContent = "Configured";
-      }
-    } else {
-      els.totalSeatsValue.textContent = "--";
-      els.availableSeatsValue.textContent = "--";
-      if (els.totalSeatsSubtext) els.totalSeatsSubtext.textContent = "Capacity not configured";
-      if (els.availableSeatsSubtext) els.availableSeatsSubtext.textContent = "Click to view shift-wise availability";
-      if (els.capacityBadge) {
-        els.capacityBadge.style.display = "none";
+    function updateCapacityButtonState() {
+      if (elements.btnConfigureCapacity) {
+        elements.btnConfigureCapacity.disabled = state.role !== "admin";
       }
     }
 
-    if (els.occupiedSeatsSubtext) els.occupiedSeatsSubtext.textContent = "Click to view occupied seat details";
-  }
-
-  function renderAvailableDetails() {
-    if (!els.availableDetailsWrap) return;
-
-    var occupiedByShift = { Morning: 0, Afternoon: 0, Evening: 0 };
-
-    for (var i = 0; i < state.students.length; i++) {
-      if (state.students[i].shift === "Morning") occupiedByShift.Morning++;
-      else if (state.students[i].shift === "Afternoon") occupiedByShift.Afternoon++;
-      else if (state.students[i].shift === "Evening") occupiedByShift.Evening++;
-    }
-
-    var totalCapacity = parseNumber(state.capacity.total);
-    var morningCapacity = parseNumber(state.capacity.morning);
-    var afternoonCapacity = parseNumber(state.capacity.afternoon);
-    var eveningCapacity = parseNumber(state.capacity.evening);
-
-    if (totalCapacity !== null) {
-      if (morningCapacity === null) morningCapacity = totalCapacity;
-      if (afternoonCapacity === null) afternoonCapacity = totalCapacity;
-      if (eveningCapacity === null) eveningCapacity = totalCapacity;
-    }
-
-    if (morningCapacity === null && afternoonCapacity === null && eveningCapacity === null) {
-      els.availableDetailsWrap.innerHTML = '<div class="seat-empty-state">Capacity not configured yet.</div>';
-      return;
-    }
-
-    els.availableDetailsWrap.innerHTML =
-      shiftRow("Morning", occupiedByShift.Morning, morningCapacity) +
-      shiftRow("Afternoon", occupiedByShift.Afternoon, afternoonCapacity) +
-      shiftRow("Evening", occupiedByShift.Evening, eveningCapacity);
-  }
-
-  function renderOccupiedDetails() {
-    if (!els.occupiedDetailsWrap) return;
-
-    if (!state.students.length) {
-      els.occupiedDetailsWrap.innerHTML = '<div class="seat-empty-state">No occupied seats found.</div>';
-      return;
-    }
-
-    var list = getFilteredStudents();
-
-    if (!list.length) {
-      els.occupiedDetailsWrap.innerHTML = '<div class="seat-empty-state">No occupied seats matched your search.</div>';
-      return;
-    }
-
-    var html = "";
-    for (var i = 0; i < list.length; i++) {
-      var item = list[i];
-      html += ''
-        + '<div class="student-item" data-student-id="' + escapeHtml(item.id) + '">'
-        + '<div class="student-item-row">'
-        + '<div>'
-        + '<div class="student-seat">Seat ' + escapeHtml(item.seatNumber || "-") + '</div>'
-        + '<div class="student-meta"><span><span class="seat-mini-label">Shift:</span> <strong>' + escapeHtml(item.shift || "-") + '</strong></span></div>'
-        + '</div>'
-        + '<div style="text-align:right;">'
-        + '<div class="student-name">' + escapeHtml(item.name || "-") + '</div>'
-        + '<div class="student-code">' + escapeHtml(item.studentCode || "-") + '</div>'
-        + '</div>'
-        + '</div>'
-        + '</div>';
-    }
-
-    els.occupiedDetailsWrap.innerHTML = html;
-  }
-
-  function getFilteredStudents() {
-    if (!state.searchTerm) return state.students.slice();
-
-    var out = [];
-    for (var i = 0; i < state.students.length; i++) {
-      var s = state.students[i];
-      var seat = (s.seatNumber || "").toLowerCase();
-      var name = (s.name || "").toLowerCase();
-      var code = (s.studentCode || "").toLowerCase();
-
-      if (
-        seat.indexOf(state.searchTerm) !== -1 ||
-        name.indexOf(state.searchTerm) !== -1 ||
-        code.indexOf(state.searchTerm) !== -1
-      ) {
-        out.push(s);
+    function disablePage() {
+      if (elements.availableCard) {
+        elements.availableCard.classList.remove("seat-card-clickable");
+        elements.availableCard.setAttribute("tabindex", "-1");
+      }
+      if (elements.occupiedCard) {
+        elements.occupiedCard.classList.remove("seat-card-clickable");
+        elements.occupiedCard.setAttribute("tabindex", "-1");
+      }
+      if (elements.seatSearchInput) {
+        elements.seatSearchInput.disabled = true;
+      }
+      if (elements.btnConfigureCapacity) {
+        elements.btnConfigureCapacity.disabled = true;
       }
     }
-    return out;
-  }
 
-  function shiftRow(name, occupied, capacity) {
-    var available = capacity === null ? "--" : Math.max(capacity - occupied, 0);
-
-    return ''
-      + '<div class="shift-item">'
-      + '<div class="shift-item-row"><div class="shift-name">' + escapeHtml(name) + '</div></div>'
-      + '<div class="shift-meta">'
-      + '<span><span class="seat-mini-label">Occupied:</span> <span class="seat-mini-value">' + escapeHtml(String(occupied)) + '</span></span>'
-      + '<span><span class="seat-mini-label">Available:</span> <span class="seat-mini-value">' + escapeHtml(String(available)) + '</span></span>'
-      + '</div>'
-      + '</div>';
-  }
-
-  function saveCapacity(e) {
-    e.preventDefault();
-
-    var total = parseNumber(els.totalCapacityInput.value);
-    var morning = parseNumber(els.morningCapacityInput.value);
-    var afternoon = parseNumber(els.afternoonCapacityInput.value);
-    var evening = parseNumber(els.eveningCapacityInput.value);
-
-    if (total !== null) {
-      if (morning === null) morning = total;
-      if (afternoon === null) afternoon = total;
-      if (evening === null) evening = total;
+    function hideAdminActions() {
+      if (elements.btnConfigureCapacity) {
+        elements.btnConfigureCapacity.classList.add("seat-hidden");
+      }
     }
 
-    els.saveCapacityBtn.disabled = true;
-    els.saveCapacityBtn.textContent = "Saving...";
-
-    db.collection("saas_libraries").doc(libraryId).set({
-      totalCapacity: total,
-      morningCapacity: morning,
-      afternoonCapacity: afternoon,
-      eveningCapacity: evening,
-      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-    }, { merge: true }).then(function () {
-      showAlert("Capacity saved successfully.", "success");
-      closeModal(els.capacityModal);
-    }).catch(function (error) {
-      console.error("Save capacity error:", error);
-      showAlert("Failed to save capacity.", "error");
-    }).finally(function () {
-      els.saveCapacityBtn.disabled = false;
-      els.saveCapacityBtn.textContent = "Save Capacity";
-    });
-  }
-
-  function fillCapacityForm() {
-    if (!els.totalCapacityInput) return;
-    els.totalCapacityInput.value = state.capacity.total !== null ? state.capacity.total : "";
-    els.morningCapacityInput.value = state.capacity.morning !== null ? state.capacity.morning : "";
-    els.afternoonCapacityInput.value = state.capacity.afternoon !== null ? state.capacity.afternoon : "";
-    els.eveningCapacityInput.value = state.capacity.evening !== null ? state.capacity.evening : "";
-  }
-
-  function openStudentModal(student) {
-    state.selectedStudent = student;
-    if (els.modalSeatNumber) els.modalSeatNumber.textContent = student.seatNumber || "-";
-    if (els.modalStudentCode) els.modalStudentCode.textContent = student.studentCode || "-";
-    if (els.modalStudentName) els.modalStudentName.textContent = student.name || "-";
-    if (els.modalFatherName) els.modalFatherName.textContent = student.fatherName || "-";
-    if (els.modalStudentClass) els.modalStudentClass.textContent = student.studentClass || "-";
-    if (els.modalStudentShift) els.modalStudentShift.textContent = student.shift || "-";
-    if (els.modalStudentStatus) els.modalStudentStatus.textContent = student.status || "-";
-    if (els.modalJoiningDate) els.modalJoiningDate.textContent = student.joiningDate || "-";
-    if (els.modalExpiryDate) els.modalExpiryDate.textContent = student.expiryDate || "-";
-    openModal(els.studentModal);
-  }
-
-  function getStudentById(id) {
-    for (var i = 0; i < state.students.length; i++) {
-      if (state.students[i].id === id) return state.students[i];
+    function showAlert(message, type) {
+      if (!elements.seatAlert) {
+        return;
+      }
+      elements.seatAlert.className = "seat-alert show " + (type || "info");
+      elements.seatAlert.textContent = message;
     }
-    return null;
-  }
 
-  function openModal(modal) {
-    if (!modal) return;
-    modal.classList.add("show");
-    modal.setAttribute("aria-hidden", "false");
-  }
-
-  function closeModal(modal) {
-    if (!modal) return;
-    modal.classList.remove("show");
-    modal.setAttribute("aria-hidden", "true");
-  }
-
-  function normalizeShift(value) {
-    var v = String(value || "").toLowerCase().trim();
-    if (v === "morning") return "Morning";
-    if (v === "afternoon") return "Afternoon";
-    if (v === "evening") return "Evening";
-    return String(value || "").trim();
-  }
-
-  function parseNumber(value) {
-    if (value === null || value === undefined || value === "") return null;
-    var n = Number(value);
-    if (isNaN(n) || n < 0) return null;
-    return Math.floor(n);
-  }
-
-  function formatDate(value) {
-    if (!value) return "-";
-    if (typeof value === "string") return value;
-    if (value.toDate && typeof value.toDate === "function") return dateToText(value.toDate());
-    if (value.seconds) return dateToText(new Date(value.seconds * 1000));
-    return "-";
-  }
-
-  function dateToText(d) {
-    if (!(d instanceof Date) || isNaN(d.getTime())) return "-";
-    var day = String(d.getDate()).padStart(2, "0");
-    var month = String(d.getMonth() + 1).padStart(2, "0");
-    var year = d.getFullYear();
-    return day + "-" + month + "-" + year;
-  }
-
-  function compareSeat(a, b) {
-    var an = parseInt(String(a || "").replace(/[^d]/g, ""), 10);
-    var bn = parseInt(String(b || "").replace(/[^d]/g, ""), 10);
-    if (!isNaN(an) && !isNaN(bn) && an !== bn) return an - bn;
-    return String(a || "").localeCompare(String(b || ""));
-  }
-
-  function findParentByClass(el, className) {
-    while (el && el !== document) {
-      if (el.classList && el.classList.contains(className)) return el;
-      el = el.parentNode;
+    function isStudentOccupied(student) {
+      return !!student.seatNumber;
     }
-    return null;
-  }
 
-  function escapeHtml(text) {
-    return String(text)
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#39;");
-  }
+    function matchesSearch(student) {
+      if (!state.searchTerm) {
+        return true;
+      }
 
-  function showAlert(message, type) {
-    if (!els.alert) return;
-    els.alert.className = "seat-alert show " + (type || "info");
-    els.alert.textContent = message;
-    clearTimeout(showAlert._timer);
-    showAlert._timer = setTimeout(function () {
-      els.alert.className = "seat-alert";
-      els.alert.textContent = "";
-    }, 4000);
-  }
+      var haystack = [
+        safeString(student.seatNumber),
+        safeString(student.name),
+        safeString(student.studentCode)
+      ].join(" ").toLowerCase();
 
-  window.addEventListener("beforeunload", function () {
-    if (typeof state.libraryUnsubscribe === "function") state.libraryUnsubscribe();
-    if (typeof state.studentsUnsubscribe === "function") state.studentsUnsubscribe();
+      return haystack.indexOf(state.searchTerm) !== -1;
+    }
+
+    function createShiftAvailabilityHtml(shiftName, capacity, occupied, available) {
+      return [
+        '<div class="shift-item">',
+          '<div class="shift-item-row">',
+            '<div>',
+              '<div class="shift-name">', escapeHtml(shiftName), '</div>',
+              '<div class="shift-meta">',
+                '<span><span class="seat-mini-label">Capacity:</span><span class="seat-mini-value">', escapeHtml(String(capacity)), '</span></span>',
+                '<span><span class="seat-mini-label">Occupied:</span><span class="seat-mini-value">', escapeHtml(String(occupied)), '</span></span>',
+                '<span><span class="seat-mini-label">Available:</span><span class="seat-mini-value">', escapeHtml(String(available)), '</span></span>',
+              '</div>',
+            '</div>',
+          '</div>',
+        '</div>'
+      ].join("");
+    }
+
+    function hasAnyCapacityConfigured(capacities) {
+      return !!(capacities.total || capacities.morning || capacities.afternoon || capacities.evening);
+    }
+
+    function findStudentById(list, id) {
+      for (var i = 0; i < list.length; i += 1) {
+        if (list[i].id === id) {
+          return list[i];
+        }
+      }
+      return null;
+    }
+
+    function normalizeShift(value) {
+      var text = safeString(value).toLowerCase();
+      if (text === "morning") return "Morning";
+      if (text === "afternoon") return "Afternoon";
+      if (text === "evening") return "Evening";
+      return safeString(value);
+    }
+
+    function formatDateValue(value) {
+      if (!value) return "";
+      if (typeof value === "string") return value;
+      if (typeof value.toDate === "function") {
+        var date = value.toDate();
+        return formatDate(date);
+      }
+      if (value instanceof Date) {
+        return formatDate(value);
+      }
+      return String(value);
+    }
+
+    function formatDate(date) {
+      if (!(date instanceof Date) || isNaN(date.getTime())) {
+        return "";
+      }
+      var day = String(date.getDate()).padStart(2, "0");
+      var month = String(date.getMonth() + 1).padStart(2, "0");
+      var year = date.getFullYear();
+      return day + "-" + month + "-" + year;
+    }
+
+    function toNumber(value) {
+      var num = Number(value);
+      return isNaN(num) || num < 0 ? 0 : num;
+    }
+
+    function clampNumber(value) {
+      value = Number(value) || 0;
+      return value < 0 ? 0 : value;
+    }
+
+    function safeString(value) {
+      return value === null || value === undefined ? "" : String(value);
+    }
+
+    function escapeHtml(value) {
+      return safeString(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
   });
 })();
