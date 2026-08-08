@@ -105,7 +105,9 @@
 
 .form-tip-note { font-size: 0.75rem; color: var(--text-muted); margin-top: 0.5rem; line-height: 1.4; }
 
-#capacityModal .seat-modal-dialog { background: #ffffff; }
+#capacityModal .seat-modal-dialog {
+    background-color: #ffffff;
+}
 
 @media (max-width: 768px) {
     .seats-header { flex-direction: column; align-items: flex-start; gap: 1rem; }
