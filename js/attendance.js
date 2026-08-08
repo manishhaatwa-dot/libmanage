@@ -112,11 +112,17 @@ async function saveAttendance() {
         const attendanceDate =
             document.getElementById("attendance-date").value;
 
-        if (!attendanceDate) {
+        const attendanceShift =
+            document.getElementById("attendance-shift").value;
 
+        if (!attendanceDate) {
             alert("Please select attendance date.");
             return;
+        }
 
+        if (!attendanceShift) {
+            alert("Please select shift.");
+            return;
         }
 
         const batch = db.batch();
@@ -140,6 +146,8 @@ async function saveAttendance() {
                 studentCode: student.studentCode,
                 name: student.name,
                 seatNumber: student.seatNumber,
+                shift: attendanceShift,
+
                 status: selectedStatus
                     ? selectedStatus.value
                     : "Absent",
@@ -149,7 +157,7 @@ async function saveAttendance() {
                 updatedAt:
                     firebase.firestore.FieldValue.serverTimestamp()
 
-            });
+            }, { merge: true });
 
         });
 
@@ -161,7 +169,7 @@ async function saveAttendance() {
 
         console.error("Attendance Save Error :", error);
 
-        alert("Failed to save attendance.");
+        alert("Failed to save attendance: " + error.message);
 
     }
 
