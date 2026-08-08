@@ -3,8 +3,9 @@
    ========================================================================== */
 
 .content-body {
-    background: linear-gradient(180deg, #f4fbf4 0%, #edf7ed 100%);
+    background: linear-gradient(180deg, #f3faf3 0%, #eaf5ea 52%, #f7fcf7 100%);
     min-height: 100%;
+    padding-bottom: 2rem;
 }
 
 .students-header {
@@ -15,60 +16,80 @@
     margin-bottom: 1.5rem;
 }
 
+.header-titles {
+    flex: 1 1 auto;
+}
+
 .header-titles h1 {
-    font-size: 1.8rem;
-    font-weight: 700;
+    font-size: 1.85rem;
+    font-weight: 800;
     color: var(--text-main);
     margin-bottom: 0.35rem;
+    letter-spacing: -0.02em;
 }
 
 .header-titles p {
     font-size: 0.95rem;
     color: var(--text-muted);
     max-width: 700px;
+    line-height: 1.55;
 }
 
 #save-attendance-btn {
-    min-width: 180px;
+    min-width: 176px;
+    min-height: 46px;
+    padding: 0.78rem 1.3rem;
+    border-radius: var(--radius-sm);
+    font-weight: 700;
+    font-size: 0.94rem;
+    align-self: flex-start;
+    box-shadow: 0 8px 18px rgba(68, 124, 68, 0.12);
 }
 
 .search-filter-panel {
     display: flex;
     justify-content: space-between;
-    align-items: end;
+    align-items: flex-end;
     gap: 1rem;
-    padding: 1.15rem;
-    margin-bottom: 1.5rem;
-    background: linear-gradient(180deg, rgba(233, 247, 233, 0.94) 0%, rgba(246, 252, 246, 0.98) 100%);
-    border: 1px solid rgba(110, 150, 110, 0.18);
+    padding: 1.2rem;
+    margin-bottom: 1.7rem;
+    background: linear-gradient(180deg, rgba(238, 248, 238, 0.95) 0%, rgba(249, 253, 249, 0.98) 100%);
+    border: 1px solid rgba(112, 155, 112, 0.18);
+    box-shadow: 0 10px 24px rgba(90, 130, 90, 0.06);
 }
 
 .search-box {
-    flex: 1 1 320px;
+    flex: 1 1 360px;
 }
 
 .search-box input {
     width: 100%;
-    min-height: 46px;
-    padding: 0.78rem 0.95rem;
+    min-height: 48px;
+    padding: 0.82rem 1rem;
     border-radius: var(--radius-sm);
-    border: 1px solid rgba(90, 130, 90, 0.18);
+    border: 1px solid rgba(102, 145, 102, 0.2);
     background: #ffffff;
     color: var(--text-main);
-    font-size: 0.95rem;
+    font-size: 0.96rem;
     font-family: inherit;
-    font-weight: 500;
+    font-weight: 600;
     outline: none;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+
+.search-box input::placeholder {
+    color: #7b8e7b;
+    font-weight: 500;
 }
 
 .search-box input:focus {
-    border-color: #7ca77c;
-    box-shadow: 0 0 0 3px rgba(124, 167, 124, 0.12);
+    border-color: #78a678;
+    box-shadow: 0 0 0 3px rgba(120, 166, 120, 0.14);
 }
 
 .filter-actions {
     display: flex;
-    align-items: end;
+    align-items: flex-end;
     gap: 1rem;
     flex-wrap: wrap;
 }
@@ -81,17 +102,18 @@
 }
 
 .form-group label {
-    font-size: 0.85rem;
+    font-size: 0.84rem;
     font-weight: 700;
     color: var(--text-main);
+    letter-spacing: 0.01em;
 }
 
 .form-group input,
 .form-group select {
     min-height: 46px;
-    padding: 0.75rem 0.85rem;
+    padding: 0.74rem 0.85rem;
     border-radius: var(--radius-sm);
-    border: 1px solid rgba(90, 130, 90, 0.18);
+    border: 1px solid rgba(102, 145, 102, 0.2);
     background: #ffffff;
     color: var(--text-main);
     font-family: inherit;
@@ -102,14 +124,16 @@
 
 .form-group input:focus,
 .form-group select:focus {
-    border-color: #7ca77c;
-    box-shadow: 0 0 0 3px rgba(124, 167, 124, 0.12);
+    border-color: #78a678;
+    box-shadow: 0 0 0 3px rgba(120, 166, 120, 0.14);
 }
 
 .students-table-card {
     padding: 1rem;
-    background: linear-gradient(180deg, rgba(252, 255, 252, 0.96) 0%, rgba(242, 249, 242, 0.96) 100%);
-    border: 1px solid rgba(110, 150, 110, 0.16);
+    margin-top: 0.2rem;
+    background: linear-gradient(180deg, rgba(252, 255, 252, 0.98) 0%, rgba(242, 249, 242, 0.97) 100%);
+    border: 1px solid rgba(112, 155, 112, 0.15);
+    box-shadow: 0 12px 28px rgba(95, 132, 95, 0.06);
 }
 
 .table-scroll-container {
@@ -119,48 +143,49 @@
 
 .students-data-table {
     width: 100%;
+    min-width: 760px;
     border-collapse: collapse;
     table-layout: auto;
-    min-width: 760px;
 }
 
 .students-data-table thead th {
     padding: 1rem 0.85rem;
-    background: rgba(208, 231, 208, 0.6);
-    color: var(--text-main);
+    background: rgba(214, 233, 214, 0.62);
+    color: #274327;
     font-size: 0.92rem;
-    font-weight: 700;
+    font-weight: 800;
     text-align: left;
-    border-bottom: 1px solid rgba(90, 130, 90, 0.16);
+    border-bottom: 1px solid rgba(92, 128, 92, 0.16);
     white-space: nowrap;
 }
 
 .students-data-table tbody td {
     padding: 1rem 0.85rem;
-    border-bottom: 1px solid rgba(90, 130, 90, 0.10);
+    border-bottom: 1px solid rgba(92, 128, 92, 0.10);
     color: var(--text-main);
     vertical-align: middle;
     font-size: 0.95rem;
+    background: transparent;
 }
 
 .students-data-table tbody tr {
-    background: rgba(255, 255, 255, 0.76);
-    transition: background 0.2s ease;
+    background: rgba(255, 255, 255, 0.78);
+    transition: background 0.2s ease, transform 0.2s ease;
 }
 
 .students-data-table tbody tr:hover {
-    background: rgba(226, 241, 226, 0.82);
+    background: rgba(231, 243, 231, 0.95);
 }
 
 .cell-strong {
     font-weight: 700;
-    color: #224d22;
+    color: #244824;
     white-space: nowrap;
 }
 
 .cell-name {
     min-width: 240px;
-    font-weight: 700;
+    font-weight: 800;
     color: var(--text-main);
     white-space: normal;
     word-break: break-word;
@@ -175,28 +200,49 @@
     color: inherit;
     cursor: pointer;
     text-align: left;
-    font-weight: 700;
+    font-weight: 800;
+    transition: color 0.2s ease, opacity 0.2s ease, transform 0.2s ease;
 }
 
 .student-row-link:hover {
     color: var(--primary-color);
     text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+.student-row-link:focus-visible {
+    outline: 2px solid rgba(81, 128, 81, 0.35);
+    outline-offset: 3px;
+    border-radius: 4px;
 }
 
 .attendance-option {
     display: inline-flex;
     align-items: center;
-    gap: 0.45rem;
-    font-size: 0.95rem;
+    gap: 0.5rem;
+    font-size: 0.94rem;
     font-weight: 700;
     color: var(--text-main);
     white-space: nowrap;
     cursor: pointer;
+    padding: 0.42rem 0.55rem;
+    border-radius: 999px;
+    transition: background 0.18s ease;
+}
+
+.attendance-option:hover {
+    background: rgba(110, 155, 110, 0.08);
 }
 
 .attendance-option input[type="radio"] {
-    accent-color: var(--primary-color);
     transform: scale(1.08);
+    cursor: pointer;
+}
+
+@supports (accent-color: #4f8d4f) {
+    .attendance-option input[type="radio"] {
+        accent-color: #4f8d4f;
+    }
 }
 
 .present-option span {
@@ -209,7 +255,7 @@
 
 .attendance-empty-state {
     text-align: center;
-    padding: 1.4rem;
+    padding: 1.45rem;
     font-weight: 600;
     color: var(--text-muted);
 }
@@ -217,7 +263,7 @@
 .modal-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(12, 20, 12, 0.34);
+    background: rgba(14, 24, 14, 0.34);
     display: none;
     align-items: center;
     justify-content: center;
@@ -233,8 +279,9 @@
     width: min(960px, 100%);
     max-height: 90vh;
     overflow: hidden;
-    background: linear-gradient(180deg, #f7fcf7 0%, #edf7ed 100%);
-    border: 1px solid rgba(90, 130, 90, 0.18);
+    background: linear-gradient(180deg, #f7fcf7 0%, #eef7ee 100%);
+    border: 1px solid rgba(102, 145, 102, 0.18);
+    box-shadow: 0 20px 48px rgba(30, 56, 30, 0.16);
 }
 
 .modal-header {
@@ -243,12 +290,12 @@
     align-items: flex-start;
     gap: 1rem;
     padding: 1.1rem 1.25rem;
-    border-bottom: 1px solid rgba(90, 130, 90, 0.10);
+    border-bottom: 1px solid rgba(92, 128, 92, 0.10);
 }
 
 .modal-header h2 {
     font-size: 1.2rem;
-    font-weight: 700;
+    font-weight: 800;
     color: var(--text-main);
     margin-bottom: 0.2rem;
 }
@@ -256,6 +303,7 @@
 .attendance-modal-subtext {
     font-size: 0.88rem;
     color: var(--text-muted);
+    line-height: 1.5;
 }
 
 .close-modal-btn {
@@ -264,14 +312,15 @@
     border-radius: 50%;
     border: none;
     cursor: pointer;
-    background: rgba(90, 130, 90, 0.08);
+    background: rgba(92, 128, 92, 0.08);
     color: var(--text-main);
     font-size: 1.4rem;
-    transition: var(--transition-smooth);
+    transition: background 0.2s ease, transform 0.2s ease;
 }
 
 .close-modal-btn:hover {
-    background: rgba(90, 130, 90, 0.16);
+    background: rgba(92, 128, 92, 0.16);
+    transform: scale(1.03);
 }
 
 .attendance-history-layout {
@@ -282,15 +331,15 @@
 .attendance-stats-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-    gap: 0.9rem;
+    gap: 0.95rem;
     margin-bottom: 1rem;
 }
 
 .attendance-stat-card {
-    padding: 0.9rem;
+    padding: 0.95rem;
     border-radius: var(--radius-sm);
-    background: rgba(255, 255, 255, 0.84);
-    border: 1px solid rgba(90, 130, 90, 0.10);
+    background: rgba(255, 255, 255, 0.86);
+    border: 1px solid rgba(92, 128, 92, 0.10);
 }
 
 .attendance-stat-card p {
@@ -299,12 +348,12 @@
     color: var(--text-muted);
     text-transform: uppercase;
     letter-spacing: 0.03em;
-    margin-bottom: 0.3rem;
+    margin-bottom: 0.32rem;
 }
 
 .attendance-stat-card h4 {
     font-size: 1rem;
-    font-weight: 700;
+    font-weight: 800;
     color: var(--text-main);
     word-break: break-word;
 }
@@ -314,7 +363,9 @@
 }
 
 .attendance-history-table {
+    width: 100%;
     min-width: 480px;
+    border-collapse: collapse;
 }
 
 .history-status-pill {
@@ -322,15 +373,15 @@
     align-items: center;
     justify-content: center;
     min-width: 88px;
-    padding: 0.38rem 0.7rem;
+    padding: 0.38rem 0.72rem;
     border-radius: 999px;
     font-size: 0.83rem;
-    font-weight: 700;
+    font-weight: 800;
 }
 
 .history-status-pill.present {
     background: rgba(16, 185, 129, 0.14);
-    color: #0c7b49;
+    color: #0d7a49;
 }
 
 .history-status-pill.absent {
@@ -353,25 +404,78 @@
         align-items: stretch;
     }
 
+    .search-box,
     .filter-actions {
         width: 100%;
+    }
+
+    .filter-actions {
+        justify-content: flex-start;
     }
 }
 
 @media (max-width: 768px) {
+    .content-body {
+        padding-bottom: 1.5rem;
+    }
+
     .header-titles h1 {
-        font-size: 1.45rem;
+        font-size: 1.5rem;
+    }
+
+    .header-titles p {
+        font-size: 0.9rem;
+    }
+
+    .search-filter-panel {
+        padding: 1rem;
+        margin-bottom: 1.45rem;
+    }
+
+    .students-table-card {
+        padding: 0.8rem;
     }
 
     .students-data-table {
         min-width: 680px;
     }
 
-    .attendance-stats-grid {
-        grid-template-columns: 1fr;
+    .students-data-table thead th,
+    .students-data-table tbody td {
+        padding: 0.9rem 0.75rem;
     }
 
     .attendance-history-layout {
         padding: 0.9rem;
+    }
+
+    .attendance-stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .attendance-history-window {
+        max-height: 92vh;
+    }
+}
+
+@media (max-width: 480px) {
+    #save-attendance-btn {
+        min-width: 100%;
+    }
+
+    .form-group {
+        min-width: 100%;
+    }
+
+    .students-data-table {
+        min-width: 640px;
+    }
+
+    .modal-header {
+        padding: 1rem;
+    }
+
+    .attendance-history-layout {
+        padding: 0.8rem;
     }
 }
