@@ -61,13 +61,50 @@ async function loadStudents() {
 
 }
 
-function renderAttendanceTable() {
+async function renderAttendanceTable() {
 
     const tableBody = document.getElementById("attendance-table-body");
 
     tableBody.innerHTML = "";
 
+    const attendanceDate =
+        document.getElementById("attendance-date").value;
+
+    const attendanceShift =
+        document.getElementById("attendance-shift").value;
+
+    let savedAttendance = {};
+
+    try {
+
+        const snapshot = await db
+            .collection("saas_libraries")
+            .doc(currentActiveBranchId)
+            .collection("attendance")
+            .doc(attendanceDate)
+            .collection("records")
+            .get();
+
+        snapshot.forEach((doc) => {
+
+            const data = doc.data();
+
+            if (data.shift === attendanceShift) {
+                savedAttendance[doc.id] = data.status;
+            }
+
+        });
+
+    } catch (error) {
+
+        console.error("Load Saved Attendance Error :", error);
+
+    }
+
     attendanceStudents.forEach((student) => {
+
+        const savedStatus =
+            savedAttendance[student.studentCode] || "Present";
 
         tableBody.innerHTML += `
 
@@ -84,14 +121,15 @@ function renderAttendanceTable() {
                     type="radio"
                     name="${student.studentCode}"
                     value="Present"
-                    checked>
+                    ${savedStatus === "Present" ? "checked" : ""}>
             </td>
 
             <td>
                 <input
                     type="radio"
                     name="${student.studentCode}"
-                    value="Absent">
+                    value="Absent"
+                    ${savedStatus === "Absent" ? "checked" : ""}>
             </td>
 
         </tr>
