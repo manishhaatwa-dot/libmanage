@@ -105,8 +105,67 @@
 
 .form-tip-note { font-size: 0.75rem; color: var(--text-muted); margin-top: 0.5rem; line-height: 1.4; }
 
-#capacityModal .seat-modal-dialog {
-    background-color: #ffffff;
+/* Force fix for Configure Capacity modal */
+#capacityModal {
+    background: rgba(255, 255, 255, 0.20) !important;
+}
+
+#capacityModal .seat-modal-dialog,
+#capacityModal .seat-modal-header,
+#capacityModal .seat-modal-body,
+#capacityModal .seat-modal-footer,
+#capacityModal form {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    color: #111111 !important;
+}
+
+#capacityModal .seat-modal-title,
+#capacityModal label,
+#capacityModal .form-tip-note,
+#capacityModal .data-label,
+#capacityModal .data-value,
+#capacityModal p,
+#capacityModal span,
+#capacityModal div {
+    color: #111111 !important;
+}
+
+#capacityModal input,
+#capacityModal select,
+#capacityModal textarea {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    color: #111111 !important;
+    border: 1px solid rgba(0, 0, 0, 0.12) !important;
+    box-shadow: none !important;
+    -webkit-text-fill-color: #111111 !important;
+    appearance: auto;
+}
+
+#capacityModal input::placeholder,
+#capacityModal textarea::placeholder {
+    color: #666666 !important;
+}
+
+#capacityModal select option {
+    background: #ffffff !important;
+    color: #111111 !important;
+}
+
+#capacityModal .seat-modal-close,
+#capacityModal button:not(.btn-action-primary) {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    color: #111111 !important;
+    border: 1px solid rgba(0, 0, 0, 0.12) !important;
+    box-shadow: none !important;
+}
+
+#capacityModal .btn-action-primary,
+#capacityModal .seat-btn.primary,
+#capacityModal #saveCapacityBtn {
+    color: #ffffff !important;
 }
 
 @media (max-width: 768px) {
