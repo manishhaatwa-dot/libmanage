@@ -51,177 +51,44 @@
 
             </div>
 
-            <!-- Top Cards -->
+            <!-- Top Quick Actions -->
 
-            <div class="stats-grid">
+            <div class="panel-card glass">
 
-                <!-- Total Seat Strength -->
+                <h2>Quick Branch Actions</h2>
 
-                <div class="stat-card glass">
+                <div class="action-buttons-grid">
 
-                    <div class="stat-icon strength">
-                        
-                    </div>
+                    <a href="students.html" class="action-btn btn-primary">
+                        <span class="btn-icon">?????</span>
+                        Manage Students
+                    </a>
 
-                    <div class="stat-info" style="width:100%;">
+                    <a href="attendance.html" class="action-btn btn-secondary">
+                        <span class="btn-icon">??</span>
+                        Mark Attendance
+                    </a>
 
-                        <h3>Total Seat Strength</h3>
-
-                        <div class="strength-control-wrapper"
-                            style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
-
-                            <span
-                                class="stat-number"
-                                id="total-strength-val">
-
-                                0
-
-                            </span>
-
-                            <button
-                                id="trigger-strength-edit-btn"
-                                class="ops-header-action">
-
-                                Edit
-
-                            </button>
-
-                            <form
-                                id="strength-modifier-inline-form"
-                                class="hide-element"
-                                style="display:none;align-items:center;gap:6px;">
-
-                                <input
-                                    type="number"
-                                    id="input-manual-strength"
-                                    min="5"
-                                    max="500"
-                                    required>
-
-                                <button
-                                    type="submit">
-
-                                    Save
-
-                                </button>
-
-                            </form>
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-                <!-- Present -->
-
-                <div class="stat-card glass">
-
-                    <div class="stat-icon present"></div>
-
-                    <div class="stat-info">
-
-                        <h3>Present Today</h3>
-
-                        <p
-                            class="stat-number"
-                            id="present-today-val">
-
-                            0
-
-                        </p>
-
-                    </div>
-
-                </div>
-
-                <!-- Absent -->
-
-                <div class="stat-card glass">
-
-                    <div class="stat-icon absent">
-                        
-                    </div>
-
-                    <div class="stat-info">
-
-                        <h3>Absent Today</h3>
-
-                        <p
-                            class="stat-number"
-                            id="absent-today-val">
-
-                            0
-
-                        </p>
-
-                    </div>
-
-                </div>
-
-                <!-- Available Seats -->
-
-                <div class="stat-card glass">
-
-                    <div class="stat-icon seats">
-                        
-                    </div>
-
-                    <div class="stat-info">
-
-                        <h3>Available Seats</h3>
-
-                        <p
-                            class="stat-number"
-                            id="available-seats-val">
-
-                            0
-
-                        </p>
-
-                    </div>
+                    <a href="seats.html" class="action-btn btn-accent">
+                        <span class="btn-icon">??</span>
+                        Seat Matrix Map
+                    </a>
 
                 </div>
 
             </div>
 
-            <!-- Bottom Layout -->
+            <!-- Main Layout -->
 
             <div class="dashboard-split">
 
                 <div class="split-left">
-<!-- Left Panel -->
-
-                    <div class="panel-card glass">
-
-                        <h2>Quick Branch Actions</h2>
-
-                        <div class="action-buttons-grid">
-
-                            <a href="students.html" class="action-btn btn-primary">
-                                <span class="btn-icon">?????</span>
-                                Manage Students
-                            </a>
-
-                            <a href="attendance.html" class="action-btn btn-secondary">
-                                <span class="btn-icon">??</span>
-                                Mark Attendance
-                            </a>
-
-                            <a href="seats.html" class="action-btn btn-accent">
-                                <span class="btn-icon">??</span>
-                                Seat Matrix Map
-                            </a>
-
-                        </div>
-
-                    </div>
 
                     <!-- Recent Notices -->
 
                     <div class="panel-card glass">
 
-                        <div style="display:flex;justify-content:space-between;align-items:center;">
+                        <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
 
                             <h2>Recent Notice Updates</h2>
 
@@ -249,38 +116,6 @@
 
                 <div class="split-right">
 
-                    <div class="panel-card glass">
-
-                        <h2>Today's Attendance Logs</h2>
-
-                        <div class="log-table-wrapper">
-
-                            <table class="dashboard-table">
-
-                                <thead>
-
-                                    <tr>
-
-                                        <th>Seat No</th>
-
-                                        <th>Student Name</th>
-
-                                        <th>Status</th>
-
-                                    </tr>
-
-                                </thead>
-
-                                <tbody id="recent-attendance-rows">
-
-                                </tbody>
-
-                            </table>
-
-                        </div>
-
-                    </div>
-
                 </div>
 
             </div>
@@ -299,10 +134,7 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
-<!-- Shared Core -->
-<script src="../js/dashboard.js"></script>
-
-<!-- Admin Dashboard Logic -->
+<!-- Shared Core / Admin Dashboard Logic -->
 <script src="../js/dashboard.js"></script>
 
 <script>
