@@ -210,38 +210,29 @@ function setupSeatRealtimeListener() {
                     seatStudents.push(student);
                 
                 }
-                document
+             document
     .getElementById("available-seats-card")
-    ?.addEventListener("click", openShiftAvailabilityModal);
+    ?.addEventListener("click", toggleShiftAvailability);
 
 
-document
-    .getElementById("close-shift-availability")
-    ?.addEventListener("click", closeShiftAvailabilityModal);
+function toggleShiftAvailability() {
 
+    const container =
+        document.getElementById("shift-availability-content");
 
-function openShiftAvailabilityModal() {
+    if (!container) return;
 
-    const modal =
-        document.getElementById("shift-availability-modal");
+    if (container.classList.contains("show")) {
 
-    if (!modal) return;
+        container.classList.remove("show");
+        container.innerHTML = "";
+
+        return;
+    }
 
     renderShiftAvailability();
 
-    modal.classList.add("active");
-
-}
-
-
-function closeShiftAvailabilityModal() {
-
-    const modal =
-        document.getElementById("shift-availability-modal");
-
-    if (!modal) return;
-
-    modal.classList.remove("active");
+    container.classList.add("show");
 
 }
 
