@@ -42,64 +42,122 @@ function bindGatewayAuthPipelines() {
 
     const db = window.db;
 
-    if (studentForm) {
-        studentForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const tokenInput = document.getElementById('student-uid').value.trim().toUpperCase();
+if (studentForm) {
+    studentForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
 
-            if (!db) {
-                alert("Database Engine Offline: Cloud storage hooks could not be fully initialized.");
+        const libraryIdInput =
+            document.getElementById('student-library-id');
+
+        const studentCodeInput =
+            document.getElementById('student-uid');
+
+        const libraryId =
+            libraryIdInput.value.trim().toUpperCase();
+
+        const studentCode =
+            studentCodeInput.value.trim().toUpperCase();
+
+        if (!db) {
+            alert("Database Engine Offline: Cloud storage hooks could not be fully initialized.");
+            return;
+        }
+
+        if (!libraryId || !studentCode) {
+            alert("Please enter Library ID and Student Code.");
+            return;
+        }
+
+        try {
+
+            const studentDoc = await db
+                .collection("saas_libraries")
+                .doc(libraryId)
+                .collection("students")
+                .doc(studentCode)
+                .get();
+
+            if (!studentDoc.exists) {
+                alert("Login Failed: Invalid Library ID or Student Code.");
                 return;
             }
 
-            try {
-                const studentQuerySnapshot = await db.collectionGroup("students")
-                    .where("studentCode", "==", tokenInput)
-                    .get();
+            const studentData = studentDoc.data();
 
-                if (studentQuerySnapshot.empty) {
-                    alert("Authentication Error: Provided Unique Student Code not matching active network profiles indices.");
-                    return;
-                }
+            const libraryDoc = await db
+                .collection("saas_libraries")
+                .doc(libraryId)
+                .get();
 
-                const targetStudentDoc = studentQuerySnapshot.docs[0];
-                const studentData = targetStudentDoc.data();
-                const parentLibraryId = studentData.libraryId;
-
-                const libraryDocSnapshot = await db.collection("saas_libraries").doc(parentLibraryId).get();
-
-                if (!libraryDocSnapshot.exists) {
-                    alert("Infrastructure Error: The associated library branch database instance has been deleted or moved.");
-                    return;
-                }
-
-                const libraryMetadata = libraryDocSnapshot.data();
-
-                if (libraryMetadata.status !== "approved") {
-                    alert("Access Blocked: Your parent library branch workspace registration is currently: AWAITING OWNER APPROVAL.");
-                    return;
-                }
-
-                if (!libraryMetadata.enabled) {
-                    alert("Access Suspended: This library branch network node is currently disabled by the owner. Contact admin.");
-                    return;
-                }
-
-                sessionStorage.setItem('session_role', 'student');
-                sessionStorage.setItem('session_user_code', studentData.studentCode);
-                sessionStorage.setItem('session_student_seat', studentData.seatNumber || "");
-                sessionStorage.setItem('session_library_id', studentData.libraryId);
-
-                const pathPrefixModifier = window.location.pathname.includes('/pages/') ? "" : "pages/";
-                window.location.href = `${pathPrefixModifier}student-dashboard.html`;
-
-            } catch (error) {
-                console.error("[Ecosystem Student Auth Transaction Failure Logs Trace]:", error);
-                alert("Cloud system synchronization failure exception occurred: " + error.message);
+            if (!libraryDoc.exists) {
+                alert("Library not found.");
+                return;
             }
-        });
-    }
 
+            const libraryData = libraryDoc.data();
+
+            if (libraryData.status !== "approved") {
+                alert("Access Blocked: This library is awaiting approval.");
+                return;
+            }
+
+            if (!libraryData.enabled) {
+                alert("Access Suspended: This library is currently disabled.");
+                return;
+            }
+
+            /*
+             * STUDENT SESSION
+             * Session remains active until explicit logout.
+             */
+
+            localStorage.setItem(
+    "session_role",
+    "student"
+);
+
+localStorage.setItem(
+    "session_user_code",
+    studentData.studentCode || studentCode
+);
+
+localStorage.setItem(
+    "session_student_seat",
+    studentData.seatNumber || ""
+);
+
+localStorage.setItem(
+    "session_library_id",
+    libraryId
+);
+
+localStorage.setItem(
+    "session_library_name",
+    libraryData.name || "Library"
+);
+
+            const pathPrefixModifier =
+                window.location.pathname.includes('/pages/')
+                    ? ""
+                    : "pages/";
+
+            window.location.href =
+                `${pathPrefixModifier}student-dashboard.html`;
+
+        } catch (error) {
+
+            console.error(
+                "[Student Login Error]:",
+                error
+            );
+
+            alert(
+                "Cloud system synchronization failure: " +
+                error.message
+            );
+        }
+    });
+}
     if (adminForm) {
         adminForm.addEventListener('submit', async (e) => {
             e.preventDefault();
