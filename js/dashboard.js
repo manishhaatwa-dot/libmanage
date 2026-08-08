@@ -19,7 +19,6 @@ if (typeof firebase !== "undefined" && firebase.apps) {
     if (!firebase.apps.length) {
         firebase.initializeApp(unifiedFirebaseConfig);
     }
-    // Expose one centralized global instance hook to clear Temporal Dead Zones (TDZ)
     window.db = firebase.firestore();
 } else {
     console.warn("[LibManage Core Engine Wait Warning]: Firebase SDK layers not detected on this context stack sequence. Ensure official script tags are loaded.");
@@ -41,10 +40,8 @@ function bindGatewayAuthPipelines() {
     const studentForm = document.getElementById('student-login-form');
     const adminForm = document.getElementById('admin-login-form');
 
-    // Local runtime extraction assertion mapping from centralized global instance
     const db = window.db;
 
-    // ????? LEVEL 3: STUDENT PORTAL MULTI-TENANT VERIFICATION PATHWAY
     if (studentForm) {
         studentForm.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -56,22 +53,19 @@ function bindGatewayAuthPipelines() {
             }
 
             try {
-                // Execute deep lookup collection group scan matches across isolated tenant records
                 const studentQuerySnapshot = await db.collectionGroup("students")
-                                                       .where("studentCode", "==", tokenInput)
-                                                       .get();
+                    .where("studentCode", "==", tokenInput)
+                    .get();
 
                 if (studentQuerySnapshot.empty) {
                     alert("Authentication Error: Provided Unique Student Code not matching active network profiles indices.");
                     return;
                 }
 
-                // Extract parameters targets indices mappings keys parameters
                 const targetStudentDoc = studentQuerySnapshot.docs[0];
                 const studentData = targetStudentDoc.data();
                 const parentLibraryId = studentData.libraryId;
 
-                // Validate corresponding infrastructure terminal node configurations conditions state limits
                 const libraryDocSnapshot = await db.collection("saas_libraries").doc(parentLibraryId).get();
 
                 if (!libraryDocSnapshot.exists) {
@@ -81,7 +75,6 @@ function bindGatewayAuthPipelines() {
 
                 const libraryMetadata = libraryDocSnapshot.data();
 
-                // Process sequential verification rules constraints properties fields states
                 if (libraryMetadata.status !== "approved") {
                     alert("Access Blocked: Your parent library branch workspace registration is currently: AWAITING OWNER APPROVAL.");
                     return;
@@ -92,14 +85,11 @@ function bindGatewayAuthPipelines() {
                     return;
                 }
 
-                 
-
-                // Authentication Authorization Confirmed - Lock routing environment parameters tokens properties maps
                 sessionStorage.setItem('session_role', 'student');
                 sessionStorage.setItem('session_user_code', studentData.studentCode);
                 sessionStorage.setItem('session_student_seat', studentData.seatNumber || "");
                 sessionStorage.setItem('session_library_id', studentData.libraryId);
-                
+
                 const pathPrefixModifier = window.location.pathname.includes('/pages/') ? "" : "pages/";
                 window.location.href = `${pathPrefixModifier}student-dashboard.html`;
 
@@ -110,7 +100,6 @@ function bindGatewayAuthPipelines() {
         });
     }
 
-    // ?? LEVEL 2: BRANCH ADMIN CONSOLE AUTHENTICATION PIPELINE ENGINE
     if (adminForm) {
         adminForm.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -123,11 +112,10 @@ function bindGatewayAuthPipelines() {
             }
 
             try {
-                // Execute direct index field query filtering across centralized root library nodes
                 const adminQuerySnapshot = await db.collection("saas_libraries")
-                                                           .where("adminEmail", "==", emailInput)
-                                                           .where("adminPass", "==", passInput)
-                                                           .get();
+                    .where("adminEmail", "==", emailInput)
+                    .where("adminPass", "==", passInput)
+                    .get();
 
                 if (adminQuerySnapshot.empty) {
                     alert("Security Check Failed: Invalid Admin Email ID or Password context configuration.");
@@ -137,7 +125,6 @@ function bindGatewayAuthPipelines() {
                 const targetLibraryDoc = adminQuerySnapshot.docs[0];
                 const libraryData = targetLibraryDoc.data();
 
-                // Enforce structural operational policy rules verification parameters logs
                 if (libraryData.status !== "approved") {
                     alert("Access Restricted: Your library request terminal state is currently: PENDING APPROVAL.");
                     return;
@@ -148,7 +135,6 @@ function bindGatewayAuthPipelines() {
                     return;
                 }
 
-                // Branch Admin Authorization Verified Successfully - Freeze navigation session tracking vectors
                 sessionStorage.setItem('session_role', 'admin');
                 sessionStorage.setItem('session_library_id', libraryData.libraryId);
                 sessionStorage.setItem('session_library_name', libraryData.name);
@@ -181,19 +167,394 @@ async function loadSaaSLayoutComponent(containerId, componentUrl, callback = nul
         console.error("[Ecosystem Layout Component Load Exception Error] Container Target [" + containerId + "] Asset [" + componentUrl + "]:", err);
     }
 }
-document.addEventListener("click", function (event) {
-    const logoutBtn = event.target.closest("#admin-logout-btn");
-    if (!logoutBtn) return;
 
-    sessionStorage.removeItem("session_role");
-    sessionStorage.removeItem("session_library_id");
-    sessionStorage.removeItem("session_library_name");
+/**
+ * Admin Notice Module
+ * Safe scope: only dashboard notice area affected
+ */
+let adminNoticeRealtimeUnsubscribe = null;
 
-    Object.keys(sessionStorage).forEach((key) => {
-        if (key.startsWith("session_admin_")) {
-            sessionStorage.removeItem(key);
+function initAdminNoticeModule() {
+    const addNoticeButton = document.getElementById("btn-add-notice");
+    const modalOverlay = document.getElementById("notice-modal-overlay");
+    const closeModalButton = document.getElementById("notice-modal-close");
+    const cancelButton = document.getElementById("notice-cancel-btn");
+    const saveButton = document.getElementById("notice-save-btn");
+    const modalTitle = document.getElementById("notice-modal-title");
+    const titleInput = document.getElementById("notice-title-input");
+    const messageInput = document.getElementById("notice-message-input");
+    const errorBox = document.getElementById("notice-form-error");
+    const successBox = document.getElementById("notice-form-success");
+    const noticeContainer = document.getElementById("recent-notices-container");
+
+    const db = window.db;
+    const currentLibraryId = sessionStorage.getItem("session_library_id");
+
+    if (
+        !addNoticeButton ||
+        !modalOverlay ||
+        !closeModalButton ||
+        !cancelButton ||
+        !saveButton ||
+        !modalTitle ||
+        !titleInput ||
+        !messageInput ||
+        !errorBox ||
+        !successBox ||
+        !noticeContainer
+    ) {
+        return;
+    }
+
+    if (!db || !currentLibraryId) {
+        console.warn("[Admin Notice Module] Missing database instance or session library context.");
+        return;
+    }
+
+    const noticesRef = db
+        .collection("saas_libraries")
+        .doc(currentLibraryId)
+        .collection("notices");
+
+    let currentNoticeEditId = null;
+    let isNoticeSaving = false;
+    let noticeDataMap = {};
+
+    function resetNoticeForm() {
+        titleInput.value = "";
+        messageInput.value = "";
+    }
+
+    function clearNoticeMessages() {
+        errorBox.textContent = "";
+        successBox.textContent = "";
+        errorBox.classList.remove("active");
+        successBox.classList.remove("active");
+    }
+
+    function showNoticeError(message) {
+        errorBox.textContent = message;
+        errorBox.classList.add("active");
+        successBox.textContent = "";
+        successBox.classList.remove("active");
+    }
+
+    function showNoticeSuccess(message) {
+        successBox.textContent = message;
+        successBox.classList.add("active");
+        errorBox.textContent = "";
+        errorBox.classList.remove("active");
+    }
+
+    function updateSaveButtonState() {
+        saveButton.disabled = isNoticeSaving;
+
+        if (currentNoticeEditId) {
+            saveButton.textContent = isNoticeSaving ? "Updating..." : "Update Notice";
+            modalTitle.textContent = "Edit Notice";
+        } else {
+            saveButton.textContent = isNoticeSaving ? "Saving..." : "Save Notice";
+            modalTitle.textContent = "Add Notice";
+        }
+    }
+
+    function openModal(mode = "add", noticeId = null) {
+        clearNoticeMessages();
+
+        if (mode === "edit" && noticeId && noticeDataMap[noticeId]) {
+            currentNoticeEditId = noticeId;
+            titleInput.value = noticeDataMap[noticeId].title || "";
+            messageInput.value = noticeDataMap[noticeId].message || "";
+        } else {
+            currentNoticeEditId = null;
+            resetNoticeForm();
+        }
+
+        isNoticeSaving = false;
+        updateSaveButtonState();
+
+        modalOverlay.classList.add("active");
+        modalOverlay.setAttribute("aria-hidden", "false");
+
+        setTimeout(() => {
+            titleInput.focus();
+        }, 40);
+    }
+
+    function closeModal() {
+        modalOverlay.classList.remove("active");
+        modalOverlay.setAttribute("aria-hidden", "true");
+        currentNoticeEditId = null;
+        isNoticeSaving = false;
+        resetNoticeForm();
+        clearNoticeMessages();
+        updateSaveButtonState();
+    }
+
+    function escapeHtml(value) {
+        return String(value || "")
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#39;");
+    }
+
+    function getTimestampMillis(timestampValue) {
+        if (!timestampValue) return null;
+
+        if (typeof timestampValue.toMillis === "function") {
+            return timestampValue.toMillis();
+        }
+
+        if (typeof timestampValue.toDate === "function") {
+            const dateValue = timestampValue.toDate();
+            return dateValue instanceof Date && !Number.isNaN(dateValue.getTime())
+                ? dateValue.getTime()
+                : null;
+        }
+
+        if (timestampValue.seconds) {
+            return (timestampValue.seconds * 1000) + Math.floor((timestampValue.nanoseconds || 0) / 1000000);
+        }
+
+        return null;
+    }
+
+    function getNoticeSortTime(notice) {
+        return getTimestampMillis(notice.createdAt)
+            ?? getTimestampMillis(notice.updatedAt)
+            ?? null;
+    }
+
+    function formatNoticeDate(timestampValue, updatedAtValue) {
+        let dateObject = null;
+        const sourceValue = timestampValue || updatedAtValue;
+
+        if (!sourceValue) return "Just now";
+
+        if (typeof sourceValue.toDate === "function") {
+            dateObject = sourceValue.toDate();
+        } else if (sourceValue.seconds) {
+            dateObject = new Date(sourceValue.seconds * 1000);
+        }
+
+        if (!dateObject || Number.isNaN(dateObject.getTime())) {
+            return "Just now";
+        }
+
+        return dateObject.toLocaleString("en-IN", {
+            day: "2-digit",
+            month: "short",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit"
+        });
+    }
+
+    async function saveNotice() {
+        const title = titleInput.value.trim();
+        const message = messageInput.value.trim();
+
+        clearNoticeMessages();
+
+        if (!title) {
+            showNoticeError("Please enter a notice title.");
+            titleInput.focus();
+            return;
+        }
+
+        if (!message) {
+            showNoticeError("Please enter a notice message.");
+            messageInput.focus();
+            return;
+        }
+
+        if (isNoticeSaving) return;
+
+        isNoticeSaving = true;
+        updateSaveButtonState();
+
+        try {
+            if (currentNoticeEditId) {
+                await noticesRef.doc(currentNoticeEditId).update({
+                    title: title,
+                    message: message,
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                showNoticeSuccess("Notice updated successfully.");
+            } else {
+                await noticesRef.add({
+                    title: title,
+                    message: message,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    createdBy:
+                        sessionStorage.getItem("session_library_name") || "admin"
+                });
+
+                showNoticeSuccess("Notice saved successfully.");
+            }
+
+            setTimeout(() => {
+                closeModal();
+            }, 450);
+
+        } catch (error) {
+            console.error("[Admin Notice Save Error]:", error);
+            showNoticeError(
+                currentNoticeEditId
+                    ? "Failed to update notice. Please try again."
+                    : "Failed to save notice. Please try again."
+            );
+            isNoticeSaving = false;
+            updateSaveButtonState();
+        }
+    }
+
+    async function deleteNotice(noticeId) {
+        if (!noticeId) return;
+
+        const shouldDelete = window.confirm("Are you sure you want to delete this notice?");
+        if (!shouldDelete) return;
+
+        try {
+            await noticesRef.doc(noticeId).delete();
+        } catch (error) {
+            console.error("[Admin Notice Delete Error]:", error);
+            alert("Failed to delete notice. Please try again.");
+        }
+    }
+
+    function renderNotices(noticeDocs) {
+        if (!noticeDocs || !noticeDocs.length) {
+            noticeDataMap = {};
+            noticeContainer.innerHTML = `
+                <div class="notice-empty-state">
+                    No notices available right now. Click <strong>+ Add Notice</strong> to publish the first update.
+                </div>
+            `;
+            return;
+        }
+
+        let html = "";
+        noticeDataMap = {};
+
+        noticeDocs.forEach((doc) => {
+            const notice = doc.data || {};
+            noticeDataMap[doc.id] = notice;
+
+            const safeTitle = escapeHtml(notice.title || "Untitled Notice");
+            const safeMessage = escapeHtml(notice.message || "");
+            const formattedDate = escapeHtml(
+                formatNoticeDate(notice.createdAt, notice.updatedAt)
+            );
+
+            html += `
+                <div class="notice-card" data-notice-id="${doc.id}">
+                    <div class="notice-card-header">
+                        <h3 class="notice-card-title">${safeTitle}</h3>
+                    </div>
+
+                    <p class="notice-card-message">${safeMessage}</p>
+
+                    <div class="notice-card-footer">
+                        <span class="notice-card-date">${formattedDate}</span>
+
+                        <div class="notice-card-actions">
+                            <button
+                                type="button"
+                                class="notice-edit-btn"
+                                data-notice-edit="${doc.id}">
+                                Edit
+                            </button>
+
+                            <button
+                                type="button"
+                                class="notice-delete-btn"
+                                data-notice-delete="${doc.id}">
+                                Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+
+        noticeContainer.innerHTML = html;
+    }
+
+    addNoticeButton.addEventListener("click", () => {
+        openModal("add");
+    });
+
+    closeModalButton.addEventListener("click", closeModal);
+    cancelButton.addEventListener("click", closeModal);
+
+    modalOverlay.addEventListener("click", (event) => {
+        if (event.target === modalOverlay) {
+            closeModal();
         }
     });
 
-    window.location.href = "../index.html";
-});
+    document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape" && modalOverlay.classList.contains("active")) {
+            closeModal();
+        }
+    });
+
+    saveButton.addEventListener("click", saveNotice);
+
+    titleInput.addEventListener("input", clearNoticeMessages);
+    messageInput.addEventListener("input", clearNoticeMessages);
+
+    noticeContainer.addEventListener("click", (event) => {
+        const editButton = event.target.closest("[data-notice-edit]");
+        if (editButton) {
+            const noticeId = editButton.getAttribute("data-notice-edit");
+            openModal("edit", noticeId);
+            return;
+        }
+
+        const deleteButton = event.target.closest("[data-notice-delete]");
+        if (deleteButton) {
+            const noticeId = deleteButton.getAttribute("data-notice-delete");
+            deleteNotice(noticeId);
+        }
+    });
+
+    if (typeof adminNoticeRealtimeUnsubscribe === "function") {
+        adminNoticeRealtimeUnsubscribe();
+    }
+
+    adminNoticeRealtimeUnsubscribe = noticesRef.onSnapshot(
+        (snapshot) => {
+            const noticeDocs = snapshot.docs.map((doc) => ({
+                id: doc.id,
+                data: doc.data()
+            }));
+
+            noticeDocs.sort((a, b) => {
+                const aTime = getNoticeSortTime(a.data);
+                const bTime = getNoticeSortTime(b.data);
+
+                if (aTime === null && bTime === null) return 0;
+                if (aTime === null) return 1;
+                if (bTime === null) return -1;
+
+                return bTime - aTime;
+            });
+
+            renderNotices(noticeDocs);
+        },
+        (error) => {
+            console.error("[Admin Notice Realtime Listener Error]:", error);
+            noticeContainer.innerHTML = `
+                <div class="notice-empty-state">
+                    Unable to load notices right now.
+                </div>
+            `;
+        }
+    );
+}
