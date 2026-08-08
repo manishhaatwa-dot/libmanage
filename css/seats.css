@@ -32,7 +32,6 @@
 
 .seat-grid-canvas {
     display: grid;
-    /* Clean fluid flex row grids columns rules sets that fit up to 500 seat nodes cleanly */
     grid-template-columns: repeat(auto-fill, minmax(95px, 1fr));
     gap: 1.25rem 1.5rem;
     width: 100%;
@@ -131,22 +130,43 @@
     color: #111111 !important;
 }
 
+/* STRONG RED INPUT FORCE FIX */
 #capacityModal input,
+#capacityModal input[type="number"],
+#capacityModal input[type="text"],
 #capacityModal select,
 #capacityModal textarea {
-    background: #fee2e2 !important;
-    background-color: #fee2e2 !important;
+    -webkit-appearance: none !important;
+    appearance: none !important;
+    background: #fecaca !important;
+    background-color: #fecaca !important;
     color: #111111 !important;
-    border: 1px solid #f87171 !important;
-    box-shadow: none !important;
+    border: 1px solid #ef4444 !important;
+    box-shadow: inset 0 0 0 9999px #fecaca !important;
+    -webkit-box-shadow: inset 0 0 0 9999px #fecaca !important;
     -webkit-text-fill-color: #111111 !important;
     outline: none !important;
-    appearance: auto;
+    opacity: 1 !important;
 }
 
 #capacityModal input::placeholder,
 #capacityModal textarea::placeholder {
     color: #7f1d1d !important;
+    opacity: 1 !important;
+}
+
+#capacityModal input:focus,
+#capacityModal input[type="number"]:focus,
+#capacityModal input[type="text"]:focus,
+#capacityModal select:focus,
+#capacityModal textarea:focus {
+    background: #fecaca !important;
+    background-color: #fecaca !important;
+    border: 1px solid #dc2626 !important;
+    box-shadow: inset 0 0 0 9999px #fecaca !important;
+    -webkit-box-shadow: inset 0 0 0 9999px #fecaca !important;
+    color: #111111 !important;
+    outline: none !important;
 }
 
 #capacityModal select option {
