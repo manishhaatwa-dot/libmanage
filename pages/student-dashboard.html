@@ -104,7 +104,7 @@
         const db = firebase.firestore();
 
         document.addEventListener('DOMContentLoaded', () => {
-            if (sessionStorage.getItem('session_role') !== 'student') {
+            if (localStorage.getItem('session_role') !== 'student') {
                 window.location.href = "../index.html";
                 return;
             }
@@ -112,8 +112,8 @@
         });
 
         function initializeStudentDashboardWorkspace() {
-            const activeUserCodeToken = sessionStorage.getItem('session_user_code');
-            const activeLibraryPartitionId = sessionStorage.getItem('session_library_id');
+            const activeUserCodeToken = localStorage.getItem('session_user_code');
+            const activeLibraryPartitionId = localStorage.getItem('session_library_id');
 
             // 1. Setup Realtime Listener for Student subcollection document
             db.collection("saas_libraries")
@@ -174,9 +174,14 @@
 
             // Bind exit logouts handles hooks elements
             document.getElementById('std-logout-trigger-btn').addEventListener('click', () => {
-                sessionStorage.clear();
-                window.location.href = "../index.html";
-            });
+    localStorage.removeItem('session_role');
+    localStorage.removeItem('session_user_code');
+    localStorage.removeItem('session_student_seat');
+    localStorage.removeItem('session_library_id');
+    localStorage.removeItem('session_library_name');
+
+    window.location.href = "../index.html";
+});
         }
 
         function paintStudentProfileHorizontalBar(student) {
