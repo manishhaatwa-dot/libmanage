@@ -12,6 +12,8 @@
       min-height: 100vh;
       padding: 20px;
       box-sizing: border-box;
+      background: linear-gradient(135deg, #0b4fd4 0%, #1565ea 45%, #1e7bff 100%);
+      border-radius: 22px;
     }
 
     .seat-page * {
@@ -25,6 +27,7 @@
       gap: 16px;
       flex-wrap: wrap;
       margin-bottom: 18px;
+      color: #ffffff;
     }
 
     .seat-title-wrap h1 {
@@ -36,7 +39,7 @@
     .seat-title-wrap p {
       margin: 0;
       font-size: 14px;
-      opacity: 0.85;
+      opacity: 0.92;
     }
 
     .seat-actions {
@@ -49,7 +52,7 @@
     .seat-btn {
       border: 1px solid rgba(255, 255, 255, 0.18);
       background: rgba(255, 255, 255, 0.12);
-      color: inherit;
+      color: #ffffff;
       padding: 10px 14px;
       border-radius: 12px;
       cursor: pointer;
@@ -65,9 +68,9 @@
     }
 
     .seat-btn.primary {
-      background: linear-gradient(135deg, #4f46e5, #2563eb);
-      color: #fff;
-      border-color: rgba(255, 255, 255, 0.12);
+      background: rgba(255, 255, 255, 0.16);
+      color: #ffffff;
+      border-color: rgba(255, 255, 255, 0.22);
     }
 
     .seat-search-wrap {
@@ -78,8 +81,8 @@
       width: 100%;
       max-width: 420px;
       border: 1px solid rgba(255, 255, 255, 0.16);
-      background: rgba(255, 255, 255, 0.12);
-      color: inherit;
+      background: rgba(255, 255, 255, 0.14);
+      color: #ffffff;
       border-radius: 14px;
       padding: 12px 14px;
       outline: none;
@@ -89,7 +92,7 @@
     }
 
     .seat-search::placeholder {
-      color: rgba(255, 255, 255, 0.72);
+      color: rgba(255, 255, 255, 0.78);
     }
 
     .seat-alert {
@@ -99,6 +102,7 @@
       font-size: 14px;
       display: none;
       border: 1px solid transparent;
+      color: #ffffff;
     }
 
     .seat-alert.show {
@@ -106,18 +110,18 @@
     }
 
     .seat-alert.info {
-      background: rgba(59, 130, 246, 0.15);
-      border-color: rgba(59, 130, 246, 0.28);
+      background: rgba(59, 130, 246, 0.20);
+      border-color: rgba(255, 255, 255, 0.22);
     }
 
     .seat-alert.success {
-      background: rgba(34, 197, 94, 0.16);
-      border-color: rgba(34, 197, 94, 0.28);
+      background: rgba(34, 197, 94, 0.18);
+      border-color: rgba(255, 255, 255, 0.22);
     }
 
     .seat-alert.error {
-      background: rgba(239, 68, 68, 0.16);
-      border-color: rgba(239, 68, 68, 0.28);
+      background: rgba(239, 68, 68, 0.20);
+      border-color: rgba(255, 255, 255, 0.22);
     }
 
     .seat-summary-grid {
@@ -132,7 +136,7 @@
       border-radius: 20px;
       padding: 18px;
       min-height: 180px;
-      color: #fff;
+      color: #ffffff;
       overflow: hidden;
       border: 1px solid rgba(255, 255, 255, 0.18);
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.16);
@@ -140,16 +144,16 @@
       -webkit-backdrop-filter: blur(14px);
     }
 
-    .seat-card-green {
-      background: linear-gradient(135deg, #34d399, #10b981);
-    }
-
-    .seat-card-blue {
-      background: linear-gradient(135deg, #60a5fa, #2563eb);
+    .seat-card-pink {
+      background: linear-gradient(135deg, #ff4fa0, #ff6bb5);
     }
 
     .seat-card-orange {
-      background: linear-gradient(135deg, #fb923c, #f97316);
+      background: linear-gradient(135deg, #ff9a3d, #ff7a18);
+    }
+
+    .seat-card-green {
+      background: linear-gradient(135deg, #38d39f, #18b67a);
     }
 
     .seat-card-clickable {
@@ -171,10 +175,11 @@
     }
 
     .seat-card-label {
-      font-size: 14px;
-      font-weight: 700;
-      letter-spacing: 0.3px;
-      opacity: 0.95;
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: 0.2px;
+      line-height: 1.1;
+      opacity: 1;
     }
 
     .seat-card-badge {
@@ -200,7 +205,7 @@
     .seat-card-subtext {
       font-size: 14px;
       line-height: 1.5;
-      opacity: 0.95;
+      opacity: 0.96;
       margin-bottom: 10px;
       min-height: 40px;
     }
@@ -208,7 +213,7 @@
     .seat-card-toggle {
       font-size: 13px;
       font-weight: 700;
-      opacity: 0.95;
+      opacity: 0.96;
     }
 
     .seat-card-content {
@@ -240,7 +245,7 @@
     .seat-empty-state {
       font-size: 14px;
       line-height: 1.5;
-      opacity: 0.95;
+      opacity: 0.96;
       padding: 8px 2px;
     }
 
@@ -278,7 +283,7 @@
       flex-wrap: wrap;
       gap: 10px 14px;
       font-size: 13px;
-      opacity: 0.95;
+      opacity: 0.96;
     }
 
     .seat-mini-label {
@@ -395,6 +400,7 @@
     .student-detail-label {
       font-size: 13px;
       opacity: 0.82;
+      color: #ffffff;
     }
 
     .seat-form-group input,
@@ -436,6 +442,10 @@
       }
 
       .seat-title-wrap h1 {
+        font-size: 24px;
+      }
+
+      .seat-card-label {
         font-size: 24px;
       }
 
@@ -485,7 +495,7 @@
     </div>
 
     <div class="seat-summary-grid">
-      <div id="totalCard" class="seat-card seat-card-green">
+      <div id="totalCard" class="seat-card seat-card-pink">
         <div class="seat-card-top">
           <div id="totalSeatsLabel" class="seat-card-label">Total Seats</div>
           <div id="capacityBadge" class="seat-card-badge">Configured</div>
@@ -496,7 +506,7 @@
 
       <div
         id="availableCard"
-        class="seat-card seat-card-blue seat-card-clickable"
+        class="seat-card seat-card-orange seat-card-clickable"
         aria-expanded="false"
         onclick="toggleSeatCardDetails('available')"
       >
@@ -516,7 +526,7 @@
 
       <div
         id="occupiedCard"
-        class="seat-card seat-card-orange seat-card-clickable"
+        class="seat-card seat-card-green seat-card-clickable"
         aria-expanded="false"
         onclick="toggleSeatCardDetails('occupied')"
       >
