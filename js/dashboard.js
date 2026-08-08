@@ -181,3 +181,19 @@ async function loadSaaSLayoutComponent(containerId, componentUrl, callback = nul
         console.error("[Ecosystem Layout Component Load Exception Error] Container Target [" + containerId + "] Asset [" + componentUrl + "]:", err);
     }
 }
+document.addEventListener("click", function (event) {
+    const logoutBtn = event.target.closest("#admin-logout-btn");
+    if (!logoutBtn) return;
+
+    sessionStorage.removeItem("session_role");
+    sessionStorage.removeItem("session_library_id");
+    sessionStorage.removeItem("session_library_name");
+
+    Object.keys(sessionStorage).forEach((key) => {
+        if (key.startsWith("session_admin_")) {
+            sessionStorage.removeItem(key);
+        }
+    });
+
+    window.location.href = "../index.html";
+});
