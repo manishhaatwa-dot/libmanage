@@ -210,19 +210,13 @@ function setupSeatRealtimeListener() {
                     seatStudents.push(student);
                 
                 }
-             document.addEventListener("DOMContentLoaded", () => {
+          const availableCard = document.getElementById("available-seats-card");
 
-    const availableCard =
-        document.getElementById("available-seats-card");
+if (availableCard) {
+    availableCard.onclick = toggleShiftAvailability;
+}
 
-    if (availableCard) {
-        availableCard.addEventListener(
-            "click",
-            toggleShiftAvailability
-        );
-    }
 
-});
 
 
 function toggleShiftAvailability() {
