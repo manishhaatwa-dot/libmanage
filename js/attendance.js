@@ -16,11 +16,17 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("attendance-date").value = today;
 
     loadStudents();
+    document
+    .getElementById("attendance-shift")
+    .addEventListener("change", loadStudents);
 
 });
 async function loadStudents() {
 
     try {
+
+        const selectedShift =
+            document.getElementById("attendance-shift")?.value || "";
 
         const snapshot = await db
             .collection("saas_libraries")
@@ -33,7 +39,14 @@ async function loadStudents() {
 
         snapshot.forEach((doc) => {
 
-            attendanceStudents.push(doc.data());
+            const student = doc.data();
+
+            if (
+                !student.shift ||
+                student.shift === selectedShift
+            ) {
+                attendanceStudents.push(student);
+            }
 
         });
 
