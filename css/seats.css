@@ -130,43 +130,51 @@
     color: #111111 !important;
 }
 
-/* STRONG RED INPUT FORCE FIX */
+/* HARD FORCE YELLOW INPUT FIX */
 #capacityModal input,
 #capacityModal input[type="number"],
 #capacityModal input[type="text"],
 #capacityModal select,
 #capacityModal textarea {
     -webkit-appearance: none !important;
+    -moz-appearance: none !important;
     appearance: none !important;
-    background: #fecaca !important;
-    background-color: #fecaca !important;
+    background: #fef08a !important;
+    background-color: #fef08a !important;
     color: #111111 !important;
-    border: 1px solid #ef4444 !important;
-    box-shadow: inset 0 0 0 9999px #fecaca !important;
-    -webkit-box-shadow: inset 0 0 0 9999px #fecaca !important;
+    border: 1px solid #eab308 !important;
+    box-shadow: inset 0 0 0 1000px #fef08a !important;
+    -webkit-box-shadow: inset 0 0 0 1000px #fef08a !important;
     -webkit-text-fill-color: #111111 !important;
     outline: none !important;
     opacity: 1 !important;
-}
-
-#capacityModal input::placeholder,
-#capacityModal textarea::placeholder {
-    color: #7f1d1d !important;
-    opacity: 1 !important;
+    border-radius: inherit;
 }
 
 #capacityModal input:focus,
 #capacityModal input[type="number"]:focus,
 #capacityModal input[type="text"]:focus,
 #capacityModal select:focus,
-#capacityModal textarea:focus {
-    background: #fecaca !important;
-    background-color: #fecaca !important;
-    border: 1px solid #dc2626 !important;
-    box-shadow: inset 0 0 0 9999px #fecaca !important;
-    -webkit-box-shadow: inset 0 0 0 9999px #fecaca !important;
+#capacityModal textarea:focus,
+#capacityModal input:active,
+#capacityModal input[type="number"]:active,
+#capacityModal input[type="text"]:active,
+#capacityModal select:active,
+#capacityModal textarea:active {
+    background: #fde047 !important;
+    background-color: #fde047 !important;
     color: #111111 !important;
+    border: 1px solid #ca8a04 !important;
+    box-shadow: inset 0 0 0 1000px #fde047 !important;
+    -webkit-box-shadow: inset 0 0 0 1000px #fde047 !important;
+    -webkit-text-fill-color: #111111 !important;
     outline: none !important;
+}
+
+#capacityModal input::placeholder,
+#capacityModal textarea::placeholder {
+    color: #713f12 !important;
+    opacity: 1 !important;
 }
 
 #capacityModal select option {
