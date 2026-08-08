@@ -134,10 +134,10 @@
 #capacityModal input,
 #capacityModal select,
 #capacityModal textarea {
-    background: #f8fafc !important;
-    background-color: #f8fafc !important;
+    background: #fee2e2 !important;
+    background-color: #fee2e2 !important;
     color: #111111 !important;
-    border: 1px solid #cbd5e1 !important;
+    border: 1px solid #f87171 !important;
     box-shadow: none !important;
     -webkit-text-fill-color: #111111 !important;
     outline: none !important;
@@ -146,7 +146,7 @@
 
 #capacityModal input::placeholder,
 #capacityModal textarea::placeholder {
-    color: #64748b !important;
+    color: #7f1d1d !important;
 }
 
 #capacityModal select option {
