@@ -1,207 +1,634 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
+
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Student Portal - Dashboard Overview</title>
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://googleapis.com">
-    <link rel="preconnect" href="https://gstatic.com" crossorigin>
-    <link href="https://googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Global Base Styles -->
-    <link rel="stylesheet" href="../css/style.css">
-    <!-- Shared Blueprint UI Elements Overrides -->
-    <link rel="stylesheet" href="../css/dashboard.css">
-    <link rel="stylesheet" href="../css/timetable.css">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Student Dashboard - Library</title>
+
+    <!-- Global CSS -->
+    <link
+        rel="stylesheet"
+        href="../css/style.css"
+    >
+
     <style>
-        .student-portal-wrapper { max-width: 1300px; width: 100%; margin: 0 auto; padding: 2rem 1.5rem; }
-        .std-nav { display: flex; justify-content: space-between; align-items: center; padding: 1.25rem 2rem; margin-bottom: 2rem; }
-        .std-nav h1 { font-size: 1.35rem; font-weight: 700; color: var(--text-main); }
-        .std-profile-strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
-        .profile-data-card { padding: 1rem; border-left: 4px solid var(--primary-color); background: #ffffff; border-radius: var(--radius-sm); box-shadow: var(--shadow-sm); }
-        .profile-data-card p { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; }
-        .profile-data-card h4 { font-size: 1.1rem; font-weight: 700; color: var(--text-main); margin-top: 0.15rem; }
-        .logout-btn-std { background: rgba(239, 68, 68, 0.1); color: #dc2626; border: 1px solid rgba(239, 68, 68, 0.2); padding: 0.45rem 1.25rem; font-size: 0.85rem; font-weight: 600; border-radius: var(--radius-sm); cursor: pointer; transition: var(--transition-smooth); }
-        .logout-btn-std:hover { background: #dc2626; color: #ffffff; }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Inter, Arial, sans-serif;
+            background: var(--background-color, #f5f7fb);
+        }
+
+        .student-dashboard {
+            width: 100%;
+            min-height: 100vh;
+            padding: 24px;
+        }
+
+        .student-topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 24px;
+        }
+
+        .student-brand h1 {
+            margin: 0;
+            font-size: 1.7rem;
+        }
+
+        .student-brand p {
+            margin: 5px 0 0;
+            color: var(--text-muted, #777);
+        }
+
+        .student-exit-btn {
+            border: none;
+            padding: 11px 18px;
+            border-radius: 9px;
+            cursor: pointer;
+            font-weight: 600;
+            background: #111827;
+            color: white;
+        }
+
+        .student-exit-btn:hover {
+            opacity: 0.9;
+        }
+
+        .student-id-bar {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 14px;
+            margin-bottom: 20px;
+        }
+
+        .student-id-box {
+            padding: 15px 18px;
+            border-radius: 12px;
+            background: white;
+            border: 1px solid rgba(0,0,0,0.07);
+        }
+
+        .student-id-box span {
+            display: block;
+            font-size: 0.78rem;
+            color: #777;
+            margin-bottom: 5px;
+        }
+
+        .student-id-box strong {
+            font-size: 0.95rem;
+        }
+
+        .student-info-card {
+            background: white;
+            border-radius: 15px;
+            padding: 22px;
+            margin-bottom: 22px;
+            border: 1px solid rgba(0,0,0,0.07);
+        }
+
+        .student-info-card h2 {
+            margin: 0 0 18px;
+            font-size: 1.25rem;
+        }
+
+        .student-info-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 14px;
+        }
+
+        .info-item {
+            padding: 13px;
+            border-radius: 10px;
+            background: #f8f9fb;
+        }
+
+        .info-item span {
+            display: block;
+            font-size: 0.76rem;
+            color: #777;
+            margin-bottom: 5px;
+        }
+
+        .info-item strong {
+            display: block;
+            word-break: break-word;
+        }
+
+        .dashboard-columns {
+            display: grid;
+            grid-template-columns: 1.35fr 1fr;
+            gap: 22px;
+            align-items: start;
+        }
+
+        .dashboard-card {
+            background: white;
+            border-radius: 15px;
+            padding: 22px;
+            border: 1px solid rgba(0,0,0,0.07);
+        }
+
+        .dashboard-card h2 {
+            margin: 0 0 18px;
+            font-size: 1.2rem;
+        }
+
+        .attendance-summary {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 14px;
+            margin-bottom: 20px;
+        }
+
+        .attendance-summary-box {
+            padding: 16px;
+            border-radius: 12px;
+            text-align: center;
+            background: #f8f9fb;
+        }
+
+        .attendance-summary-box span {
+            display: block;
+            font-size: 0.8rem;
+            color: #777;
+            margin-bottom: 6px;
+        }
+
+        .attendance-summary-box strong {
+            font-size: 1.6rem;
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .calendar-header button {
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 8px;
+            padding: 7px 12px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .calendar-month-title {
+            font-weight: 700;
+            font-size: 1rem;
+        }
+
+        .calendar-weekdays,
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 6px;
+        }
+
+        .calendar-weekdays div {
+            text-align: center;
+            font-size: 0.72rem;
+            color: #777;
+            padding: 6px 0;
+            font-weight: 600;
+        }
+
+        .calendar-day {
+            min-height: 55px;
+            border-radius: 9px;
+            border: 1px solid #eee;
+            background: #fafafa;
+            padding: 7px;
+            position: relative;
+        }
+
+        .calendar-day.empty {
+            background: transparent;
+            border: none;
+        }
+
+        .calendar-day-number {
+            font-size: 0.78rem;
+            font-weight: 700;
+        }
+
+        .calendar-status {
+            display: block;
+            margin-top: 6px;
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-align: center;
+            border-radius: 5px;
+            padding: 3px 2px;
+        }
+
+        .calendar-status.present {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .calendar-status.absent {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .calendar-day.today {
+            border: 2px solid #111827;
+        }
+
+        .notice-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .notice-item {
+            padding: 15px;
+            border-radius: 11px;
+            background: #f8f9fb;
+            border-left: 4px solid #111827;
+        }
+
+        .notice-item h3 {
+            margin: 0 0 6px;
+            font-size: 0.98rem;
+        }
+
+        .notice-item p {
+            margin: 0;
+            color: #555;
+            white-space: pre-wrap;
+            line-height: 1.5;
+        }
+
+        .notice-date {
+            display: block;
+            margin-top: 9px;
+            color: #888;
+            font-size: 0.72rem;
+        }
+
+        .empty-message {
+            text-align: center;
+            padding: 25px 10px;
+            color: #777;
+        }
+
+        .loading-message {
+            color: #777;
+            text-align: center;
+            padding: 20px;
+        }
+
+        @media (max-width: 900px) {
+
+            .dashboard-columns {
+                grid-template-columns: 1fr;
+            }
+
+            .student-info-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+        }
+
+        @media (max-width: 600px) {
+
+            .student-dashboard {
+                padding: 14px;
+            }
+
+            .student-topbar {
+                align-items: flex-start;
+            }
+
+            .student-brand h1 {
+                font-size: 1.35rem;
+            }
+
+            .student-id-bar {
+                grid-template-columns: 1fr;
+            }
+
+            .student-info-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .dashboard-card,
+            .student-info-card {
+                padding: 16px;
+            }
+
+            .calendar-day {
+                min-height: 48px;
+                padding: 5px;
+            }
+
+            .calendar-status {
+                font-size: 0.55rem;
+            }
+
+        }
+
     </style>
+
 </head>
+
 <body>
 
-    <div class="student-portal-wrapper">
-        <!-- Top Custom Branding Ribbon -->
-        <header class="std-nav glass">
-            <div>
-                <h1 id="lbl-portal-library-title">Library Terminal Portal</h1>
-                <p style="font-size:0.8rem; color:var(--text-muted); font-weight:500;" id="lbl-portal-welcome-tag">Student Access Workspace</p>
-            </div>
-            <button class="logout-btn-std" id="std-logout-trigger-btn">Exit Portal ??</button>
-        </header>
+<div class="student-dashboard">
 
-        <!-- Dynamic Profile Summary Cards row -->
-        <div class="std-profile-strip" id="student-meta-profile-strip">
-            <!-- Loaded dynamically via runtime lookup fields -->
-        </div>
+    <!-- =====================================================
+         TOP BAR
+         ===================================================== -->
 
-        <!-- Metric Ratio summaries cards grid row -->
-        <div class="analytics-summary-grid" style="margin-bottom: 2rem;">
-            <div class="analytic-card glass">
-                <h4>Your Attendance Score</h4>
-                <p id="lbl-ratio-metric" style="font-size: 2.25rem; color: var(--primary-color);">0%</p>
-            </div>
-            <div class="analytic-card glass">
-                <h4>Days Attended (Present)</h4>
-                <p id="lbl-p-metric" style="font-size: 2.25rem; color: #10b981;">0</p>
-            </div>
-            <div class="analytic-card glass">
-                <h4>Days Missed (Absent)</h4>
-                <p id="lbl-a-metric" style="font-size: 2.25rem; color: #ef4444;">0</p>
-            </div>
-        </div>
+    <div class="student-topbar">
 
-        <!-- Split Columns Grid for Operational insights views -->
-        <div class="operations-grid">
-            
-            <!-- Column 1: Shift Batch timings info block -->
-            <div class="panel-card glass ops-panel" style="min-height:380px;">
-                <div class="panel-title-bar">
-                    <h2>Library Hours & Shifts</h2>
-                </div>
-                <div class="timetable-list" id="lbl-canvas-shifts">
-                    <!-- Dynamic Timetable elements load here -->
-                </div>
-            </div>
+        <div class="student-brand">
 
-            <!-- Column 2: Central Bulletin Board messages info block -->
-            <div class="panel-card glass ops-panel" style="min-height:380px;">
-                <div class="panel-title-bar">
-                    <h2>Notice Board Notifications</h2>
-                </div>
-                <div class="bulletin-list-container" id="lbl-canvas-notices">
-                    <!-- Notices records load here -->
-                </div>
-            </div>
+            <h1>Student Dashboard</h1>
 
-            <!-- Column 3: Calendar Holiday catalogs block -->
-            <div class="panel-card glass ops-panel" style="min-height:380px;">
-                <div class="panel-title-bar">
-                    <h2>Branch Upcoming Holidays</h2>
-                </div>
-                <div class="bulletin-list-container" id="lbl-canvas-holidays">
-                    <!-- Holidays entries list here -->
-                </div>
-            </div>
+            <p>
+                Your Library Membership Portal
+            </p>
 
         </div>
+
+        <button
+            type="button"
+            class="student-exit-btn"
+            id="student-exit-btn"
+        >
+            Exit Portal
+        </button>
+
     </div>
 
-    <!-- Firebase Compat SDK Integration Layers -->
-    <script src="https://gstatic.com"></script>
-    <script src="https://gstatic.com"></script>
 
-    <!-- Shared Framework Config Loader -->
-    <script src="../js/dashboard.js"></script>
-    <script>
-        const db = firebase.firestore();
+    <!-- =====================================================
+         LOGIN IDs
+         ===================================================== -->
 
-        document.addEventListener('DOMContentLoaded', () => {
-            if (localStorage.getItem('session_role') !== 'student') {
-                window.location.href = "../index.html";
-                return;
-            }
-            initializeStudentDashboardWorkspace();
-        });
+    <div class="student-id-bar">
 
-        function initializeStudentDashboardWorkspace() {
-            const activeUserCodeToken = localStorage.getItem('session_user_code');
-            const activeLibraryPartitionId = localStorage.getItem('session_library_id');
+        <div class="student-id-box">
 
-            // 1. Setup Realtime Listener for Student subcollection document
-            db.collection("saas_libraries")
-              .doc(activeLibraryPartitionId)
-              .collection("students")
-              .doc(activeUserCodeToken)
-              .onSnapshot(async (studentDoc) => {
-                  if (!studentDoc.exists) {
-                      alert("Profile Error: Your student record profile is not present inside the cloud system.");
-                      window.location.href = "../index.html";
-                      return;
-                  }
-                  const studentData = studentDoc.data();
+            <span>
+                Library ID
+            </span>
 
-                  try {
-                      // Fetch corresponding branch name from root collection doc
-                      const libDoc = await db.collection("saas_libraries").doc(activeLibraryPartitionId).get();
-                      if (libDoc.exists) {
-                          document.getElementById('lbl-portal-library-title').innerText = libDoc.data().name;
-                      }
+            <strong id="student-library-id-display">
+                Loading...
+            </strong>
 
-                      document.getElementById('lbl-portal-welcome-tag').innerText = `Logged In Student: ${studentData.name} (${activeUserCodeToken})`;
+        </div>
 
-                      // Paint local text nodes elements layout panels
-                      paintStudentProfileHorizontalBar(studentData);
-                      computeAndPaintPersonalAttendanceMetrics(studentData);
 
-                  } catch (err) {
-                      console.error("[Firestore Student Layout Hydration Fault]:", err);
-                  }
-              }, err => console.error("Cloud snapshot profile streaming failure:", err));
+        <div class="student-id-box">
 
-            // 2. Setup Realtime Listener for shift hour documents inside timetable subcollection
-            db.collection("saas_libraries")
-              .doc(activeLibraryPartitionId)
-              .collection("timetable")
-              .doc("shift_config")
-              .onSnapshot((ttDoc) => {
-                  paintOperatingHoursShifts(ttDoc.exists ? ttDoc.data() : null);
-              });
+            <span>
+                Student Login ID
+            </span>
 
-            // 3. Setup Realtime Listener for notice bulletins within library subcollection
-            db.collection("saas_libraries")
-              .doc(activeLibraryPartitionId)
-              .collection("notices")
-              .orderBy("timestamp", "desc")
-              .onSnapshot((noticesSnapshot) => {
-                  paintFilteredPublicNotices(noticesSnapshot);
-              });
+            <strong id="student-code-display">
+                Loading...
+            </strong>
 
-            // 4. Setup Realtime Listener for custom calendar holiday documents subcollection
-            db.collection("saas_libraries")
-              .doc(activeLibraryPartitionId)
-              .collection("holidays")
-              .onSnapshot((holidaysSnapshot) => {
-                  paintFilteredCalendarHolidays(holidaysSnapshot);
-              });
+        </div>
 
-            // Bind exit logouts handles hooks elements
-            document.getElementById('std-logout-trigger-btn').addEventListener('click', () => {
-    localStorage.removeItem('session_role');
-    localStorage.removeItem('session_user_code');
-    localStorage.removeItem('session_student_seat');
-    localStorage.removeItem('session_library_id');
-    localStorage.removeItem('session_library_name');
+    </div>
 
-    window.location.href = "../index.html";
-});
-        }
 
-        function paintStudentProfileHorizontalBar(student) {
-            const container = document.getElementById('student-meta-profile-strip');
-            if (!container) return;
+    <!-- =====================================================
+         STUDENT PROFILE
+         ===================================================== -->
 
-            container.innerHTML = `
-                <div class="profile-data-card">
-                    <p>Assigned Seat No</p>
-                    <h4 style="color:var(--primary-color); font-size:1.3rem;">${student.seatNumber ? student.seatNumber.toUpperCase() : 'N/A'}</h4>
+    <div class="student-info-card">
+
+        <h2>
+            Student Details
+        </h2>
+
+        <div class="student-info-grid">
+
+            <div class="info-item">
+                <span>Student Name</span>
+                <strong id="student-name">Loading...</strong>
+            </div>
+
+            <div class="info-item">
+                <span>Father's Name</span>
+                <strong id="student-father">Loading...</strong>
+            </div>
+
+            <div class="info-item">
+                <span>Mobile Number</span>
+                <strong id="student-mobile">Loading...</strong>
+            </div>
+
+            <div class="info-item">
+                <span>Class</span>
+                <strong id="student-class">Loading...</strong>
+            </div>
+
+            <div class="info-item">
+                <span>Seat Number</span>
+                <strong id="student-seat">Loading...</strong>
+            </div>
+
+            <div class="info-item">
+                <span>Shift</span>
+                <strong id="student-shift">Loading...</strong>
+            </div>
+
+            <div class="info-item">
+                <span>Joining Date</span>
+                <strong id="student-joining">Loading...</strong>
+            </div>
+
+            <div class="info-item">
+                <span>Expiry Date</span>
+                <strong id="student-expiry">Loading...</strong>
+            </div>
+
+            <div class="info-item">
+                <span>Status</span>
+                <strong id="student-status">Loading...</strong>
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         DASHBOARD COLUMNS
+         ===================================================== -->
+
+    <div class="dashboard-columns">
+
+
+        <!-- =================================================
+             ATTENDANCE
+             ================================================= -->
+
+        <div class="dashboard-card">
+
+            <h2>
+                Attendance History
+            </h2>
+
+            <div class="attendance-summary">
+
+                <div class="attendance-summary-box">
+
+                    <span>
+                        Total Present
+                    </span>
+
+                    <strong id="total-present">
+                        0
+                    </strong>
+
                 </div>
-                <div class="profile-data-card" style="border-left-color: var(--secondary-color);">
-                    <p>Preparation / Class Block</p>
-                    <h4>${student.studentClass}</h4>
-                </div>
-                <div class="profile-data-card" style="border-left-color: var(--accent-color);">
-                    <p>Subscription Expiry</p>
-                    <h4>${student.expiryDate}</h4>
-                </div>
-            `;
-        }
 
-        async function computeAndPaintPersonalAttendanceMetrics(student) {
+                <div class="attendance-summary-box">
+
+                    <span>
+                        Total Absent
+                    </span>
+
+                    <strong id="total-absent">
+                        0
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <div class="calendar-header">
+
+                <button
+                    type="button"
+                    id="previous-month-btn"
+                >
+                    ‹
+                </button>
+
+                <div
+                    class="calendar-month-title"
+                    id="calendar-month-title"
+                >
+                    Loading...
+                </div>
+
+                <button
+                    type="button"
+                    id="next-month-btn"
+                >
+                    ›
+                </button>
+
+            </div>
+
+
+            <div class="calendar-weekdays">
+
+                <div>Sun</div>
+                <div>Mon</div>
+                <div>Tue</div>
+                <div>Wed</div>
+                <div>Thu</div>
+                <div>Fri</div>
+                <div>Sat</div>
+
+            </div>
+
+
+            <div
+                class="calendar-grid"
+                id="attendance-calendar"
+            >
+                <div class="loading-message">
+                    Loading attendance...
+                </div>
+            </div>
+
+        </div>
+
+
+        <!-- =================================================
+             NOTICES
+             ================================================= -->
+
+        <div class="dashboard-card">
+
+            <h2>
+                Library Notices
+            </h2>
+
+            <div
+                class="notice-list"
+                id="student-notice-list"
+            >
+
+                <div class="loading-message">
+                    Loading notices...
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =========================================================
+     FIREBASE SDK
+     ========================================================= -->
+
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+
+<!-- =========================================================
+     CORE ENGINE
+     This provides Firebase config + window.db
+     ========================================================= -->
+
+<script src="../js/dashboard.js"></script>
+
+
+<!-- =========================================================
+     STUDENT DASHBOARD JS
+     ========================================================= -->
+
+<script src="../js/student-dashboard.js"></script>
+
+</body>
+
+</html>
