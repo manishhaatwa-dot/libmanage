@@ -24,8 +24,6 @@ let studentDashboardData = null;
 let attendanceHistoryMap = {};
 let attendanceMonthCursor = new Date();
 
-let attendanceUnsubscribeRef = null;
-
 let studentDashboardInitialized = false;
 
 
@@ -56,21 +54,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
 async function initializeStudentDashboard() {
 
-    /*
-     * IMPORTANT:
-     * Student login stores these values in localStorage.
-     */
-
     studentDashboardLibraryId =
         localStorage.getItem("session_library_id") || "";
 
     studentDashboardCode =
         localStorage.getItem("session_user_code") || "";
 
-
-    /*
-     * No student session = return to login.
-     */
 
     if (
         !studentDashboardLibraryId ||
@@ -269,13 +258,6 @@ async function loadStudentProfile() {
         studentSnapshot.data() || {};
 
 
-    /*
-     * Extra safety:
-     *
-     * The document itself must belong to the
-     * logged-in library and student code.
-     */
-
     const storedLibraryId =
         String(
             studentDashboardData.libraryId || ""
@@ -413,7 +395,11 @@ function renderStudentProfile() {
  *
  * ONLY CURRENT STUDENT RECORD IS READ.
  *
- * REALTIME ATTENDANCE LISTENER
+ * FIRESTORE:
+ * saas_libraries/{libraryId}/attendance/{date}/records/{studentCode}
+ *
+ * IMPORTANT:
+ * Student side performs READ ONLY.
  * ==========================================================================
  */
 
@@ -432,252 +418,227 @@ async function loadStudentAttendance() {
     }
 
 
-    /*
-     * Remove previous listener if one exists.
-     */
-
-    if (attendanceUnsubscribeRef) {
-
-        attendanceUnsubscribeRef();
-
-        attendanceUnsubscribeRef = null;
-
-    }
-
-
     attendanceHistoryMap = {};
 
 
-    /*
-     * Listen only to attendance DATE documents
-     * inside the currently logged-in library.
-     */
-
-    const attendanceCollectionRef =
+    const attendanceRef =
         db
             .collection("saas_libraries")
             .doc(studentDashboardLibraryId)
             .collection("attendance");
 
 
-    attendanceUnsubscribeRef =
-        attendanceCollectionRef.onSnapshot(
+    try {
 
-            async (attendanceDatesSnapshot) => {
+        /*
+         * Get all attendance date documents
+         * belonging ONLY to this library.
+         */
 
-                try {
+        const attendanceDatesSnapshot =
+            await attendanceRef.get();
 
-                    const newAttendanceHistoryMap = {};
 
+        /*
+         * Read the CURRENT student's record
+         * from every attendance date.
+         */
 
-                    /*
-                     * Read ONLY the current student's
-                     * record from every attendance date.
-                     */
+        for (
+            const attendanceDateDoc
+            of attendanceDatesSnapshot.docs
+        ) {
 
-                    const attendancePromises =
-                        attendanceDatesSnapshot.docs.map(
-                            async (attendanceDateDoc) => {
+            const dateId =
+                attendanceDateDoc.id;
 
-                                const dateId =
-                                    attendanceDateDoc.id;
 
+            const recordSnapshot =
+                await attendanceRef
+                    .doc(dateId)
+                    .collection("records")
+                    .doc(studentDashboardCode)
+                    .get();
 
-                                const recordSnapshot =
-                                    await attendanceCollectionRef
-                                        .doc(dateId)
-                                        .collection("records")
-                                        .doc(studentDashboardCode)
-                                        .get();
 
+            /*
+             * No attendance record for this
+             * student on this date.
+             */
 
-                                if (
-                                    !recordSnapshot.exists
-                                ) {
+            if (!recordSnapshot.exists) {
 
-                                    return null;
-
-                                }
-
-
-                                const recordData =
-                                    recordSnapshot.data() || {};
-
-
-                                /*
-                                 * STUDENT CODE SAFETY CHECK
-                                 */
-
-                                if (
-                                    String(
-                                        recordData.studentCode || ""
-                                    ).trim() !==
-                                    String(
-                                        studentDashboardCode
-                                    ).trim()
-                                ) {
-
-                                    return null;
-
-                                }
-
-
-                                /*
-                                 * LIBRARY SAFETY CHECK
-                                 *
-                                 * Attendance records created by
-                                 * admin are already inside this
-                                 * library path.
-                                 */
-
-                                if (
-                                    recordData.libraryId &&
-                                    String(
-                                        recordData.libraryId
-                                    ).trim() !==
-                                    String(
-                                        studentDashboardLibraryId
-                                    ).trim()
-                                ) {
-
-                                    return null;
-
-                                }
-
-
-                                /*
-                                 * SHIFT SAFETY CHECK
-                                 */
-
-                                if (
-                                    studentDashboardData &&
-                                    studentDashboardData.shift &&
-                                    recordData.shift &&
-                                    String(
-                                        recordData.shift
-                                    ).trim() !==
-                                    String(
-                                        studentDashboardData.shift
-                                    ).trim()
-                                ) {
-
-                                    return null;
-
-                                }
-
-
-                                const attendanceDate =
-                                    String(
-                                        recordData.date ||
-                                        dateId
-                                    ).trim();
-
-
-                                const status =
-                                    String(
-                                        recordData.status || ""
-                                    ).trim();
-
-
-                                /*
-                                 * Only valid attendance statuses.
-                                 */
-
-                                if (
-                                    status !== "Present" &&
-                                    status !== "Absent"
-                                ) {
-
-                                    return null;
-
-                                }
-
-
-                                return {
-
-                                    date:
-                                        attendanceDate,
-
-                                    status:
-                                        status,
-
-                                    shift:
-                                        recordData.shift || ""
-
-                                };
-
-                            }
-                        );
-
-
-                    const attendanceResults =
-                        await Promise.all(
-                            attendancePromises
-                        );
-
-
-                    attendanceResults.forEach(
-                        (attendanceItem) => {
-
-                            if (!attendanceItem) {
-                                return;
-                            }
-
-
-                            newAttendanceHistoryMap[
-                                attendanceItem.date
-                            ] = {
-
-                                status:
-                                    attendanceItem.status,
-
-                                shift:
-                                    attendanceItem.shift,
-
-                                date:
-                                    attendanceItem.date
-
-                            };
-
-                        }
-                    );
-
-
-                    /*
-                     * Replace the complete attendance map
-                     * with fresh Firebase data.
-                     */
-
-                    attendanceHistoryMap =
-                        newAttendanceHistoryMap;
-
-
-                    updateAttendanceTotals();
-
-                    renderAttendanceCalendar();
-
-
-                } catch (error) {
-
-                    console.error(
-                        "[Student Attendance Realtime Read Error]:",
-                        error
-                    );
-
-                }
-
-            },
-
-            (error) => {
-
-                console.error(
-                    "[Student Attendance Listener Error]:",
-                    error
-                );
+                continue;
 
             }
 
+
+            const recordData =
+                recordSnapshot.data() || {};
+
+
+            /*
+             * STUDENT CODE SAFETY CHECK
+             */
+
+            const recordStudentCode =
+                String(
+                    recordData.studentCode || ""
+                ).trim();
+
+
+            if (
+                recordStudentCode !==
+                String(
+                    studentDashboardCode
+                ).trim()
+            ) {
+
+                continue;
+
+            }
+
+
+            /*
+             * LIBRARY SAFETY CHECK
+             */
+
+            if (
+                recordData.libraryId &&
+                String(
+                    recordData.libraryId
+                ).trim() !==
+                String(
+                    studentDashboardLibraryId
+                ).trim()
+            ) {
+
+                continue;
+
+            }
+
+
+            /*
+             * SHIFT SAFETY CHECK
+             */
+
+            if (
+                studentDashboardData &&
+                studentDashboardData.shift &&
+                recordData.shift &&
+                String(
+                    recordData.shift
+                ).trim() !==
+                String(
+                    studentDashboardData.shift
+                ).trim()
+            ) {
+
+                continue;
+
+            }
+
+
+            /*
+             * Attendance date.
+             *
+             * Firestore:
+             * 2026-08-09
+             */
+
+            const attendanceDate =
+                String(
+                    recordData.date ||
+                    dateId
+                ).trim();
+
+
+            /*
+             * Attendance status.
+             */
+
+            const attendanceStatus =
+                String(
+                    recordData.status || ""
+                ).trim();
+
+
+            /*
+             * Only Present / Absent records
+             * are displayed.
+             */
+
+            if (
+                attendanceStatus !== "Present" &&
+                attendanceStatus !== "Absent"
+            ) {
+
+                continue;
+
+            }
+
+
+            /*
+             * SAVE INTO STUDENT'S OWN
+             * ATTENDANCE HISTORY MAP.
+             */
+
+            attendanceHistoryMap[
+                attendanceDate
+            ] = {
+
+                status:
+                    attendanceStatus,
+
+                shift:
+                    recordData.shift || "",
+
+                date:
+                    attendanceDate
+
+            };
+
+        }
+
+
+        /*
+         * Update totals.
+         */
+
+        updateAttendanceTotals();
+
+
+        /*
+         * Render calendar after Firebase
+         * attendance data has loaded.
+         */
+
+        renderAttendanceCalendar();
+
+
+        console.log(
+            "[Student Attendance Loaded Successfully]",
+            {
+                libraryId:
+                    studentDashboardLibraryId,
+
+                studentCode:
+                    studentDashboardCode,
+
+                attendance:
+                    attendanceHistoryMap
+            }
         );
+
+
+    } catch (error) {
+
+        console.error(
+            "[Student Attendance Read Error]:",
+            error
+        );
+
+    }
 
 }
 
@@ -791,10 +752,6 @@ function renderAttendanceCalendar() {
 
     let html = "";
 
-
-    /*
-     * Empty cells before day 1.
-     */
 
     for (
         let i = 0;
@@ -1120,23 +1077,6 @@ async function loadStudentNotices() {
  */
 
 function studentPortalLogout() {
-
-    /*
-     * Stop attendance realtime listener.
-     */
-
-    if (attendanceUnsubscribeRef) {
-
-        attendanceUnsubscribeRef();
-
-        attendanceUnsubscribeRef = null;
-
-    }
-
-
-    /*
-     * Remove ONLY student session values.
-     */
 
     localStorage.removeItem(
         "session_role"
