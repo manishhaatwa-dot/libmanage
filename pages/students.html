@@ -1,160 +1,145 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Library Terminal - Student Records</title>
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://googleapis.com">
-    <link rel="preconnect" href="https://gstatic.com" crossorigin>
-    <link href="https://googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Global Style -->
-    <link rel="stylesheet" href="../css/style.css">
-    <!-- Student Panel Custom Style -->
-    <link rel="stylesheet" href="../css/students.css">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Students Management</title>
+
+    <link rel="stylesheet" href="../css/style.css" />
+    <link rel="stylesheet" href="../css/dashboard.css" />
+    <link rel="stylesheet" href="../css/students.css" />
 </head>
 <body>
+    <div class="dashboard-layout-shell">
+        <aside id="sidebar-container"></aside>
 
-    <div class="app-container">
-        <!-- Dynamic Sidebar Injection Link -->
-        <div id="sidebar-container"></div>
+        <div class="dashboard-main-column">
+            <header id="navbar-container"></header>
 
-        <div class="main-content">
-            <!-- Dynamic Navbar Injection Link -->
-            <div id="navbar-container"></div>
-
-            <main class="content-body">
-                <!-- Top Control Header -->
-                <div class="students-header">
-                    <div class="header-titles">
-                        <h1>Student Directory</h1>
-                        <p>Register library members. Every student receives an auto-generated Unique Login Code linked to their record.</p>
+            <main class="dashboard-content-area">
+                <section class="page-title-strip">
+                    <div>
+                        <h1>Students Directory</h1>
+                        <p>Manage all registered students under the selected library branch.</p>
                     </div>
-                    <button class="add-student-trigger" id="open-add-modal-btn">
-                        + Add Student
-                    </button>
-                </div>
+                    <button class="primary-btn" id="open-add-modal-btn">+ Add Student</button>
+                </section>
 
-                <!-- Utilities Search Box Panel -->
-                <div class="search-filter-panel glass">
-                    <div class="search-box">
-                        <span class="search-icon">🔍</span>
-                        <input type="text" id="student-search-input" placeholder="Search by Name, Unique Code, Seat, or Class...">
+                <section class="content-card glass">
+                    <div class="toolbar-row">
+                        <div class="toolbar-search-box">
+                            <input
+                                type="text"
+                                id="student-search-input"
+                                placeholder="Search by student code, seat, name, father name or class..."
+                            />
+                        </div>
                     </div>
-                </div>
 
-                <!-- Students Dynamic Data Grid Table -->
-                <div class="students-table-card glass">
-                    <div class="table-scroll-container">
-                        <table class="students-data-table">
+                    <div class="table-responsive-wrap">
+                        <table class="data-table">
                             <thead>
                                 <tr>
-                                    <th>Unique Login Code</th>
+                                    <th>Student Code</th>
                                     <th>Seat No</th>
-                                    <th>Student Name</th>
-                                    <th>Father's Name</th>
-                                   <th>Class Block</th>
-                                   <th>Shift</th>
+                                    <th>Name</th>
+                                    <th>Father Name</th>
+                                    <th>Class</th>
                                     <th>Joining Date</th>
                                     <th>Expiry Date</th>
                                     <th>Status</th>
-                                    <th class="actions-header">Actions Matrix</th>
+                                    <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody id="students-table-rows">
-                                <!-- Dynamic JS injection occurs here -->
+                                <tr>
+                                    <td colspan="9" class="table-empty">Loading student records...</td>
+                                </tr>
                             </tbody>
                         </table>
                     </div>
-                </div>
+                </section>
             </main>
 
-            <!-- Dynamic Footer Injection Link -->
-            <div id="footer-container"></div>
+            <footer id="footer-container"></footer>
         </div>
     </div>
 
-    <!-- Modal Form Interface Blueprint for Managing Profiles -->
-    <div class="modal-overlay" id="student-modal">
-        <div class="modal-window glass">
-            <div class="modal-header">
-                <h2 id="modal-title-context">Register New Student</h2>
-               <button class="close-modal-btn">&times;</button>
+    <!-- Student Add/Edit Modal -->
+    <div class="modal-overlay-shell" id="student-modal">
+        <div class="modal-dialog-card">
+            <div class="modal-header-strip">
+                <div>
+                    <h2 id="modal-title-context">Register New Library Member</h2>
+                    <p id="modal-code-display-block" class="hide-element">
+                        Student Code: <strong id="modal-student-code-preview"></strong>
+                    </p>
+                </div>
+                <button class="icon-close-btn" id="close-modal-btn" type="button" aria-label="Close modal">×</button>
             </div>
-            <form id="student-form" class="modal-form">
-                <!-- Form operational indices hooks parameters -->
-                <input type="hidden" id="form-edit-index" value="">
-                <input type="hidden" id="form-student-code" value="">
-                
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label for="std-name">Student Full Name *</label>
-                        <input type="text" id="std-name" required placeholder="Enter complete legal name">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="std-father">Father's Name *</label>
-                        <input type="text" id="std-father" required placeholder="Enter father's name">
-                    </div>
 
-                    <div class="form-group">
-                        <label for="std-class">Class / Preparation Course *</label>
-                        <input type="text" id="std-class" required placeholder="e.g., UPSC / MCA / SSC">
-                    </div>
-                    <div class="form-group">
-                    <label for="std-shift">Shift *</label>
+            <form id="student-form" class="form-grid-layout">
+                <input type="hidden" id="form-edit-index" />
+                <input type="hidden" id="form-student-code" />
 
-                    <select id="std-shift" required>
-                     <option value="Morning">Morning</option>
-                       <option value="Afternoon">Afternoon</option>
+                <div class="form-field-block">
+                    <label for="std-name">Student Name</label>
+                    <input type="text" id="std-name" name="name" placeholder="Enter student name" required />
+                </div>
+
+                <div class="form-field-block">
+                    <label for="std-father">Father Name</label>
+                    <input type="text" id="std-father" name="fatherName" placeholder="Enter father name" required />
+                </div>
+
+                <div class="form-field-block">
+                    <label for="std-class">Class</label>
+                    <input type="text" id="std-class" name="studentClass" placeholder="Enter class" required />
+                </div>
+
+                <div class="form-field-block">
+                    <label for="std-seat">Seat Number</label>
+                    <input type="text" id="std-seat" name="seatNumber" placeholder="Enter seat number" required />
+                </div>
+
+                <div class="form-field-block">
+                    <label for="std-shift">Shift</label>
+                    <select id="std-shift" name="shift" required>
+                        <option value="">Select Shift</option>
+                        <option value="Morning">Morning</option>
+                        <option value="Afternoon">Afternoon</option>
                         <option value="Evening">Evening</option>
-                         </select>
-                          </div>
-                    <div class="form-group">
-                        <label for="std-seat">Assigned Seat Number *</label>
-                        <input type="text" id="std-seat" required placeholder="e.g., A1, B4, J5">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="std-joining">Membership Joining Date *</label>
-                        <input type="date" id="std-joining" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="std-expiry">Membership Expiry Date *</label>
-                        <input type="date" id="std-expiry" required>
-                    </div>
-
-                    <div class="form-group full-width">
-                        <label for="std-status">Status State</label>
-                        <select id="std-status">
-                            <option value="Active">Active</option>
-                            <option value="Expired">Expired</option>
-                        </select>
-                    </div>
+                    </select>
                 </div>
 
-                <!-- Display Token Area Exclusively on Edit Mode to show their Unique Key -->
-                <div id="modal-code-display-block" class="hide-element" style="margin-bottom:1.25rem; padding:0.6rem; background:rgba(0,0,0,0.03); border-radius:4px; font-size:0.85rem; font-weight:600;">
-                    Student Login Code: <code id="lbl-display-unique-token" style="color:var(--primary-color); font-size:0.95rem;">-</code>
+                <div class="form-field-block">
+                    <label for="std-joining">Joining Date</label>
+                    <input type="date" id="std-joining" name="joiningDate" required />
                 </div>
 
-                <div class="form-actions">
-                    <button type="button" class="btn-cancel" id="cancel-form-btn">Cancel</button>
-                    <button type="submit" class="btn-submit">Commit Record</button>
+                <div class="form-field-block">
+                    <label for="std-expiry">Expiry Date</label>
+                    <input type="date" id="std-expiry" name="expiryDate" required />
+                </div>
+
+                <div class="form-field-block">
+                    <label for="std-status">Status</label>
+                    <select id="std-status" name="status" required>
+                        <option value="">Select Status</option>
+                        <option value="Active">Active</option>
+                        <option value="Expired">Expired</option>
+                    </select>
+                </div>
+
+                <div class="form-actions-row">
+                    <button type="button" class="secondary-btn" id="cancel-form-btn">Cancel</button>
+                    <button type="submit" class="primary-btn">Save Student</button>
                 </div>
             </form>
         </div>
     </div>
 
-   <!-- Firebase SDK -->
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-
-<!-- Shared Core -->
-<script src="../js/dashboard.js"></script>
-
-<!-- Students -->
-<script src="../js/students.js"></script>
+    <script src="../js/dashboard.js"></script>
+    <script src="../js/students.js"></script>
 </body>
 </html>
