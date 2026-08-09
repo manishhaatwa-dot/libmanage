@@ -49,7 +49,7 @@
 
                 </div>
 
-                <!-- BLUE ADD STUDENT BUTTON -->
+                <!-- Add Student -->
                 <button
                     class="add-student-trigger"
                     id="open-add-modal-btn"
@@ -125,7 +125,6 @@
 
         </main>
 
-
         <!-- Footer -->
         <div id="footer-container"></div>
 
@@ -147,11 +146,9 @@
         <div class="modal-header">
 
             <div>
-
                 <h2 id="modal-title-context">
                     Register New Library Member
                 </h2>
-
             </div>
 
             <button
@@ -388,22 +385,17 @@
 
 <!-- =========================================================
      FIREBASE
-     SAME WORKING CHAIN AS ATTENDANCE
+     Same working initialization chain as Attendance
      ========================================================= -->
 
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
-
-<!-- IMPORTANT:
-     dashboard.js initializes Firebase and creates window.db.
-     It also contains loadSaaSLayoutComponent(), which students.js needs.
--->
+<!-- Core Engine -->
 <script src="../js/dashboard.js"></script>
 
-
-<!-- Student Directory Engine -->
+<!-- Student Directory -->
 <script src="../js/students.js"></script>
 
 </body>
