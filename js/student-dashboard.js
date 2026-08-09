@@ -3,16 +3,17 @@
  * LIBMANAGE - STUDENT DASHBOARD
  * READ ONLY STUDENT PORTAL
  *
- * DATA SOURCE:
+ * STUDENT PROFILE:
  * saas_libraries/{libraryId}/students/{studentCode}
  *
  * ATTENDANCE:
- * saas_libraries/{libraryId}/attendance/{date}/records/{studentCode}
+ * saas_libraries/{libraryId}/attendance/{YYYY-MM-DD}/records/{studentCode}
  *
  * NOTICES:
  * saas_libraries/{libraryId}/notices/{noticeId}
  *
- * STUDENT SIDE HAS NO WRITE / UPDATE / DELETE OPERATIONS.
+ * STUDENT SIDE = READ ONLY
+ * NO WRITE / UPDATE / DELETE
  * ==========================================================================
  */
 
@@ -54,12 +55,24 @@ document.addEventListener("DOMContentLoaded", () => {
 
 async function initializeStudentDashboard() {
 
+    /*
+     * Student login session
+     */
+
     studentDashboardLibraryId =
-        localStorage.getItem("session_library_id") || "";
+        String(
+            localStorage.getItem("session_library_id") || ""
+        ).trim();
 
     studentDashboardCode =
-        localStorage.getItem("session_user_code") || "";
+        String(
+            localStorage.getItem("session_user_code") || ""
+        ).trim();
 
+
+    /*
+     * No session
+     */
 
     if (
         !studentDashboardLibraryId ||
@@ -101,7 +114,7 @@ async function initializeStudentDashboard() {
 
 /**
  * ==========================================================================
- * DISPLAY LOGIN IDs
+ * DISPLAY LOGIN IDS
  * ==========================================================================
  */
 
@@ -216,8 +229,7 @@ function bindStudentDashboardEvents() {
 
 async function loadStudentProfile() {
 
-    const db =
-        window.db;
+    const db = window.db;
 
 
     if (!db) {
@@ -258,26 +270,30 @@ async function loadStudentProfile() {
         studentSnapshot.data() || {};
 
 
+    /*
+     * Security verification
+     */
+
     const storedLibraryId =
         String(
             studentDashboardData.libraryId || ""
-        );
+        ).trim();
 
 
     const storedStudentCode =
         String(
             studentDashboardData.studentCode || ""
-        );
+        ).trim();
 
 
     if (
         storedLibraryId &&
         storedLibraryId !==
-            String(studentDashboardLibraryId)
+            studentDashboardLibraryId
     ) {
 
         console.error(
-            "[Student Security Context Mismatch] Library ID mismatch."
+            "[Student Security] Library ID mismatch."
         );
 
         alert(
@@ -294,11 +310,11 @@ async function loadStudentProfile() {
     if (
         storedStudentCode &&
         storedStudentCode !==
-            String(studentDashboardCode)
+            studentDashboardCode
     ) {
 
         console.error(
-            "[Student Security Context Mismatch] Student Code mismatch."
+            "[Student Security] Student Code mismatch."
         );
 
         alert(
@@ -391,22 +407,26 @@ function renderStudentProfile() {
 
 /**
  * ==========================================================================
- * LOAD ATTENDANCE
- *
- * ONLY CURRENT STUDENT RECORD IS READ.
- *
- * FIRESTORE:
- * saas_libraries/{libraryId}/attendance/{date}/records/{studentCode}
+ * LOAD STUDENT ATTENDANCE
  *
  * IMPORTANT:
- * Student side performs READ ONLY.
+ *
+ * Firebase structure:
+ *
+ * saas_libraries
+ *    └── LIBRARY_ID
+ *         └── attendance
+ *              └── 2026-08-09
+ *                   └── records
+ *                        └── LIB001
+ *
+ * We read ONLY the currently logged-in student's document.
  * ==========================================================================
  */
 
 async function loadStudentAttendance() {
 
-    const db =
-        window.db;
+    const db = window.db;
 
 
     if (!db) {
@@ -421,224 +441,277 @@ async function loadStudentAttendance() {
     attendanceHistoryMap = {};
 
 
-    const attendanceRef =
+    const attendanceCollection =
         db
             .collection("saas_libraries")
             .doc(studentDashboardLibraryId)
             .collection("attendance");
 
 
-    try {
+    /*
+     * Get all attendance DATE documents
+     * belonging to this library.
+     */
+
+    const attendanceDatesSnapshot =
+        await attendanceCollection.get();
+
+
+    console.log(
+        "[Student Attendance] Date documents found:",
+        attendanceDatesSnapshot.size
+    );
+
+
+    /*
+     * Check every attendance date.
+     */
+
+    for (
+        const attendanceDateDoc
+        of attendanceDatesSnapshot.docs
+    ) {
 
         /*
-         * Get all attendance date documents
-         * belonging ONLY to this library.
+         * IMPORTANT:
+         *
+         * Use Firebase document ID as the date.
+         *
+         * Example:
+         * 2026-08-09
          */
 
-        const attendanceDatesSnapshot =
-            await attendanceRef.get();
+        const dateId =
+            String(
+                attendanceDateDoc.id || ""
+            ).trim();
 
 
-        /*
-         * Read the CURRENT student's record
-         * from every attendance date.
-         */
+        if (!isValidAttendanceDate(dateId)) {
 
-        for (
-            const attendanceDateDoc
-            of attendanceDatesSnapshot.docs
-        ) {
-
-            const dateId =
-                attendanceDateDoc.id;
-
-
-            const recordSnapshot =
-                await attendanceRef
-                    .doc(dateId)
-                    .collection("records")
-                    .doc(studentDashboardCode)
-                    .get();
-
-
-            /*
-             * No attendance record for this
-             * student on this date.
-             */
-
-            if (!recordSnapshot.exists) {
-
-                continue;
-
-            }
-
-
-            const recordData =
-                recordSnapshot.data() || {};
-
-
-            /*
-             * STUDENT CODE SAFETY CHECK
-             */
-
-            const recordStudentCode =
-                String(
-                    recordData.studentCode || ""
-                ).trim();
-
-
-            if (
-                recordStudentCode !==
-                String(
-                    studentDashboardCode
-                ).trim()
-            ) {
-
-                continue;
-
-            }
-
-
-            /*
-             * LIBRARY SAFETY CHECK
-             */
-
-            if (
-                recordData.libraryId &&
-                String(
-                    recordData.libraryId
-                ).trim() !==
-                String(
-                    studentDashboardLibraryId
-                ).trim()
-            ) {
-
-                continue;
-
-            }
-
-
-            /*
-             * SHIFT SAFETY CHECK
-             */
-
-            if (
-                studentDashboardData &&
-                studentDashboardData.shift &&
-                recordData.shift &&
-                String(
-                    recordData.shift
-                ).trim() !==
-                String(
-                    studentDashboardData.shift
-                ).trim()
-            ) {
-
-                continue;
-
-            }
-
-
-            /*
-             * Attendance date.
-             *
-             * Firestore:
-             * 2026-08-09
-             */
-
-            const attendanceDate =
-                String(
-                    recordData.date ||
-                    dateId
-                ).trim();
-
-
-            /*
-             * Attendance status.
-             */
-
-            const attendanceStatus =
-                String(
-                    recordData.status || ""
-                ).trim();
-
-
-            /*
-             * Only Present / Absent records
-             * are displayed.
-             */
-
-            if (
-                attendanceStatus !== "Present" &&
-                attendanceStatus !== "Absent"
-            ) {
-
-                continue;
-
-            }
-
-
-            /*
-             * SAVE INTO STUDENT'S OWN
-             * ATTENDANCE HISTORY MAP.
-             */
-
-            attendanceHistoryMap[
-                attendanceDate
-            ] = {
-
-                status:
-                    attendanceStatus,
-
-                shift:
-                    recordData.shift || "",
-
-                date:
-                    attendanceDate
-
-            };
+            continue;
 
         }
 
 
         /*
-         * Update totals.
+         * Read ONLY:
+         *
+         * records/{logged-in-student-code}
          */
 
-        updateAttendanceTotals();
+        const recordSnapshot =
+            await attendanceCollection
+                .doc(dateId)
+                .collection("records")
+                .doc(studentDashboardCode)
+                .get();
 
 
         /*
-         * Render calendar after Firebase
-         * attendance data has loaded.
+         * No attendance for this student on this date.
          */
 
-        renderAttendanceCalendar();
+        if (!recordSnapshot.exists) {
+
+            continue;
+
+        }
+
+
+        const recordData =
+            recordSnapshot.data() || {};
+
+
+        /*
+         * Extra student-code safety.
+         */
+
+        const recordStudentCode =
+            String(
+                recordData.studentCode || ""
+            ).trim();
+
+
+        if (
+            recordStudentCode !==
+            studentDashboardCode
+        ) {
+
+            continue;
+
+        }
+
+
+        /*
+         * Shift safety.
+         *
+         * Only reject when BOTH values exist
+         * and they actually differ.
+         */
+
+        const studentShift =
+            String(
+                studentDashboardData?.shift || ""
+            ).trim();
+
+
+        const attendanceShift =
+            String(
+                recordData.shift || ""
+            ).trim();
+
+
+        if (
+            studentShift &&
+            attendanceShift &&
+            studentShift !== attendanceShift
+        ) {
+
+            console.warn(
+                "[Student Attendance] Shift mismatch:",
+                dateId,
+                studentShift,
+                attendanceShift
+            );
+
+            continue;
+
+        }
+
+
+        /*
+         * Normalize status.
+         */
+
+        const rawStatus =
+            String(
+                recordData.status || ""
+            ).trim()
+            .toLowerCase();
+
+
+        let normalizedStatus = "";
+
+
+        if (rawStatus === "present") {
+
+            normalizedStatus = "Present";
+
+        }
+
+
+        if (rawStatus === "absent") {
+
+            normalizedStatus = "Absent";
+
+        }
+
+
+        if (!normalizedStatus) {
+
+            continue;
+
+        }
+
+
+        /*
+         * IMPORTANT:
+         *
+         * Always use Firebase DATE DOCUMENT ID.
+         *
+         * This avoids any date-format problem inside
+         * recordData.date.
+         */
+
+        attendanceHistoryMap[dateId] = {
+
+            status:
+                normalizedStatus,
+
+            shift:
+                attendanceShift,
+
+            date:
+                dateId
+
+        };
 
 
         console.log(
-            "[Student Attendance Loaded Successfully]",
-            {
-                libraryId:
-                    studentDashboardLibraryId,
-
-                studentCode:
-                    studentDashboardCode,
-
-                attendance:
-                    attendanceHistoryMap
-            }
-        );
-
-
-    } catch (error) {
-
-        console.error(
-            "[Student Attendance Read Error]:",
-            error
+            "[Student Attendance] Loaded:",
+            dateId,
+            normalizedStatus
         );
 
     }
+
+
+    console.log(
+        "[Student Attendance] Final Map:",
+        attendanceHistoryMap
+    );
+
+
+    updateAttendanceTotals();
+
+}
+
+
+/**
+ * ==========================================================================
+ * VALIDATE FIREBASE ATTENDANCE DATE
+ * ==========================================================================
+ */
+
+function isValidAttendanceDate(value) {
+
+    const match =
+        String(value || "").match(
+            /^(\d{4})-(\d{2})-(\d{2})$/
+        );
+
+
+    if (!match) {
+        return false;
+    }
+
+
+    const year =
+        Number(match[1]);
+
+    const month =
+        Number(match[2]);
+
+    const day =
+        Number(match[3]);
+
+
+    if (
+        month < 1 ||
+        month > 12 ||
+        day < 1 ||
+        day > 31
+    ) {
+
+        return false;
+
+    }
+
+
+    const testDate =
+        new Date(
+            year,
+            month - 1,
+            day
+        );
+
+
+    return (
+        testDate.getFullYear() === year &&
+        testDate.getMonth() === month - 1 &&
+        testDate.getDate() === day
+    );
 
 }
 
@@ -660,16 +733,20 @@ function updateAttendanceTotals() {
     ).forEach((date) => {
 
         const status =
-            attendanceHistoryMap[date].status;
+            attendanceHistoryMap[date]?.status;
 
 
         if (status === "Present") {
+
             presentCount++;
+
         }
 
 
         if (status === "Absent") {
+
             absentCount++;
+
         }
 
     });
@@ -709,7 +786,9 @@ function renderAttendanceCalendar() {
 
 
     if (!calendar || !title) {
+
         return;
+
     }
 
 
@@ -734,6 +813,10 @@ function renderAttendanceCalendar() {
         `${monthName} ${year}`;
 
 
+    /*
+     * First weekday of month.
+     */
+
     const firstDay =
         new Date(
             year,
@@ -741,6 +824,10 @@ function renderAttendanceCalendar() {
             1
         ).getDay();
 
+
+    /*
+     * Number of days in month.
+     */
 
     const daysInMonth =
         new Date(
@@ -752,6 +839,10 @@ function renderAttendanceCalendar() {
 
     let html = "";
 
+
+    /*
+     * Empty cells before day 1.
+     */
 
     for (
         let i = 0;
@@ -770,6 +861,10 @@ function renderAttendanceCalendar() {
         new Date();
 
 
+    /*
+     * Render every date.
+     */
+
     for (
         let day = 1;
         day <= daysInMonth;
@@ -787,8 +882,9 @@ function renderAttendanceCalendar() {
 
 
         /*
-         * Firebase date format:
-         * YYYY-MM-DD
+         * EXACT same format as Firebase:
+         *
+         * 2026-08-09
          */
 
         const dateKey =
@@ -796,16 +892,14 @@ function renderAttendanceCalendar() {
 
 
         const attendance =
-            attendanceHistoryMap[
-                dateKey
-            ];
+            attendanceHistoryMap[dateKey];
 
 
         let statusHtml = "";
 
 
         /*
-         * PRESENT = GREEN
+         * PRESENT
          */
 
         if (
@@ -814,19 +908,7 @@ function renderAttendanceCalendar() {
         ) {
 
             statusHtml = `
-                <span
-                    class="calendar-status present"
-                    style="
-                        display:inline-block;
-                        margin-top:4px;
-                        padding:3px 6px;
-                        border-radius:5px;
-                        background:#16a34a;
-                        color:#ffffff;
-                        font-size:0.7rem;
-                        font-weight:700;
-                    "
-                >
+                <span class="calendar-status present">
                     Present
                 </span>
             `;
@@ -835,28 +917,16 @@ function renderAttendanceCalendar() {
 
 
         /*
-         * ABSENT = RED
+         * ABSENT
          */
 
-        if (
+        else if (
             attendance &&
             attendance.status === "Absent"
         ) {
 
             statusHtml = `
-                <span
-                    class="calendar-status absent"
-                    style="
-                        display:inline-block;
-                        margin-top:4px;
-                        padding:3px 6px;
-                        border-radius:5px;
-                        background:#dc2626;
-                        color:#ffffff;
-                        font-size:0.7rem;
-                        font-weight:700;
-                    "
-                >
+                <span class="calendar-status absent">
                     Absent
                 </span>
             `;
@@ -873,6 +943,7 @@ function renderAttendanceCalendar() {
         html += `
             <div
                 class="calendar-day ${isToday ? "today" : ""}"
+                data-date="${dateKey}"
                 title="${formatDisplayDate(dateKey)}"
             >
 
@@ -897,8 +968,6 @@ function renderAttendanceCalendar() {
 /**
  * ==========================================================================
  * LOAD STUDENT NOTICES
- *
- * READ ONLY
  * ==========================================================================
  */
 
@@ -915,7 +984,9 @@ async function loadStudentNotices() {
 
 
     if (!noticeContainer) {
+
         return;
+
     }
 
 
@@ -942,9 +1013,7 @@ async function loadStudentNotices() {
                 .get();
 
 
-        if (
-            noticesSnapshot.empty
-        ) {
+        if (noticesSnapshot.empty) {
 
             noticeContainer.innerHTML = `
                 <div class="empty-message">
@@ -968,19 +1037,24 @@ async function loadStudentNotices() {
 
             notices.push({
 
-                id: doc.id,
+                id:
+                    doc.id,
 
                 title:
-                    data.title || "Library Notice",
+                    data.title ||
+                    "Library Notice",
 
                 message:
-                    data.message || "",
+                    data.message ||
+                    "",
 
                 createdAt:
-                    data.createdAt || null,
+                    data.createdAt ||
+                    null,
 
                 updatedAt:
-                    data.updatedAt || null
+                    data.updatedAt ||
+                    null
 
             });
 
@@ -1017,38 +1091,40 @@ async function loadStudentNotices() {
 
 
         noticeContainer.innerHTML =
-            notices.map(
-                (notice) => {
+            notices
+                .map(
+                    (notice) => {
 
-                    return `
-                        <div class="notice-item">
+                        return `
+                            <div class="notice-item">
 
-                            <h3>
-                                ${escapeHtml(
-                                    notice.title
-                                )}
-                            </h3>
+                                <h3>
+                                    ${escapeHtml(
+                                        notice.title
+                                    )}
+                                </h3>
 
-                            <p>
-                                ${escapeHtml(
-                                    notice.message
-                                )}
-                            </p>
+                                <p>
+                                    ${escapeHtml(
+                                        notice.message
+                                    )}
+                                </p>
 
-                            <span class="notice-date">
-                                ${escapeHtml(
-                                    formatNoticeDate(
-                                        notice.createdAt,
-                                        notice.updatedAt
-                                    )
-                                )}
-                            </span>
+                                <span class="notice-date">
+                                    ${escapeHtml(
+                                        formatNoticeDate(
+                                            notice.createdAt,
+                                            notice.updatedAt
+                                        )
+                                    )}
+                                </span>
 
-                        </div>
-                    `;
+                            </div>
+                        `;
 
-                }
-            ).join("");
+                    }
+                )
+                .join("");
 
 
     } catch (error) {
@@ -1109,10 +1185,10 @@ function studentPortalLogout() {
  * ==========================================================================
  * DATE DISPLAY
  *
- * Firebase keeps:
+ * Firebase:
  * YYYY-MM-DD
  *
- * Website displays:
+ * Website:
  * DD/MM/YYYY
  * ==========================================================================
  */
@@ -1128,7 +1204,9 @@ function formatDisplayDate(value) {
 
 
     if (!dateString) {
+
         return "";
+
     }
 
 
@@ -1141,10 +1219,8 @@ function formatDisplayDate(value) {
         const year =
             parts[0];
 
-
         const month =
             parts[1];
-
 
         const day =
             parts[2];
@@ -1181,7 +1257,9 @@ function formatDisplayDate(value) {
 function getTimestampMillis(value) {
 
     if (!value) {
+
         return null;
+
     }
 
 
@@ -1204,12 +1282,14 @@ function getTimestampMillis(value) {
             value.toDate();
 
 
-        return date instanceof Date &&
+        return (
+            date instanceof Date &&
             !Number.isNaN(
                 date.getTime()
             )
-                ? date.getTime()
-                : null;
+        )
+            ? date.getTime()
+            : null;
 
     }
 
@@ -1248,7 +1328,9 @@ function formatNoticeDate(
 
 
     if (!source) {
+
         return "Recently";
+
     }
 
 
@@ -1263,7 +1345,9 @@ function formatNoticeDate(
         date =
             source.toDate();
 
-    } else if (
+    }
+
+    else if (
         source.seconds
     ) {
 
