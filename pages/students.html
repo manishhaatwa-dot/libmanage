@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,6 +9,7 @@
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
         rel="stylesheet"
@@ -214,24 +214,6 @@
                 </div>
 
 
-                <!-- Mobile Number -->
-                <div class="form-group">
-
-                    <label for="std-mobile">
-                        Mobile Number
-                    </label>
-
-                    <input
-                        type="tel"
-                        id="std-mobile"
-                        inputmode="numeric"
-                        maxlength="10"
-                        placeholder="Enter 10 digit mobile number"
-                    >
-
-                </div>
-
-
                 <!-- Father Name -->
                 <div class="form-group">
 
@@ -277,6 +259,24 @@
                         type="text"
                         id="std-seat"
                         placeholder="Enter seat number"
+                        required
+                    >
+
+                </div>
+
+
+                <!-- Mobile Number -->
+                <div class="form-group">
+
+                    <label for="std-mobile">
+                        Mobile Number
+                    </label>
+
+                    <input
+                        type="tel"
+                        id="std-mobile"
+                        placeholder="Enter mobile number"
+                        maxlength="10"
                         required
                     >
 
@@ -347,8 +347,10 @@
                     </label>
 
                     <input
-                        type="date"
+                        type="text"
                         id="std-joining"
+                        placeholder="DD/MM/YYYY"
+                        maxlength="10"
                         required
                     >
 
@@ -363,8 +365,10 @@
                     </label>
 
                     <input
-                        type="date"
+                        type="text"
                         id="std-expiry"
+                        placeholder="DD/MM/YYYY"
+                        maxlength="10"
                         required
                     >
 
