@@ -392,6 +392,33 @@ async function saveAttendance() {
 
         const batch = db.batch();
 
+        /*
+         * FIX:
+         * Create the parent attendance date document first.
+         *
+         * Student Dashboard reads the attendance date documents
+         * before opening the records subcollection.
+         *
+         * Existing attendance record structure remains unchanged:
+         *
+         * attendance/{date}/records/{studentCode}
+         */
+        const attendanceDateRef = db
+            .collection("saas_libraries")
+            .doc(currentActiveBranchId)
+            .collection("attendance")
+            .doc(attendanceDate);
+
+        batch.set(
+            attendanceDateRef,
+            {
+                date: attendanceDate,
+                updatedAt:
+                    firebase.firestore.FieldValue.serverTimestamp()
+            },
+            { merge: true }
+        );
+
         attendanceStudents.forEach((student) => {
             const selectedStatus = document.querySelector(
                 `input[name="${student.studentCode}"]:checked`
