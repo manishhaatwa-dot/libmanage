@@ -2,251 +2,196 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Students Management</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Students - Library Admin</title>
 
     <link rel="stylesheet" href="../css/style.css" />
-    <link rel="stylesheet" href="../css/dashboard.css" />
     <link rel="stylesheet" href="../css/students.css" />
 </head>
 <body>
+    <div id="sidebar-container"></div>
 
-    <div class="dashboard-layout-shell">
-        <aside id="sidebar-container"></aside>
+    <main class="page-shell">
+        <div id="navbar-container"></div>
 
-        <div class="dashboard-main-column">
-            <header id="navbar-container"></header>
-
-            <main class="dashboard-content-area">
-
-                <section class="page-title-strip">
-                    <div>
-                        <h1>Students Directory</h1>
-                        <p>Manage all registered students under the selected library branch.</p>
-                    </div>
-
-                    <button class="primary-btn" id="open-add-modal-btn" type="button">
-                        + Add Student
-                    </button>
-                </section>
-
-                <section class="content-card glass">
-
-                    <div class="toolbar-row">
-                        <div class="toolbar-search-box">
-                            <input
-                                type="text"
-                                id="student-search-input"
-                                placeholder="Search by student code, seat, name, father name or class..."
-                                autocomplete="off"
-                            />
-                        </div>
-                    </div>
-
-                    <div class="table-responsive-wrap">
-                        <table class="data-table">
-
-                            <thead>
-                                <tr>
-                                    <th>Student Code</th>
-                                    <th>Seat No</th>
-                                    <th>Name</th>
-                                    <th>Father Name</th>
-                                    <th>Class</th>
-                                    <th>Joining Date</th>
-                                    <th>Expiry Date</th>
-                                    <th>Status</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-
-                            <tbody id="students-table-rows">
-                                <tr>
-                                    <td colspan="9" class="table-empty">
-                                        Loading student records...
-                                    </td>
-                                </tr>
-                            </tbody>
-
-                        </table>
-                    </div>
-
-                </section>
-
-            </main>
-
-            <footer id="footer-container"></footer>
-        </div>
-    </div>
-
-
-    <!-- =========================================================
-         STUDENT ADD / EDIT MODAL
-         ========================================================= -->
-
-    <div class="modal-overlay-shell" id="student-modal">
-
-        <div class="modal-dialog-card">
-
-            <div class="modal-header-strip">
-
+        <section class="page-content">
+            <div class="page-header">
                 <div>
-                    <h2 id="modal-title-context">
-                        Register New Library Member
-                    </h2>
-
-                    <p id="modal-code-display-block" class="hide-element">
-                        Student Code:
-                        <strong id="modal-student-code-preview"></strong>
-                    </p>
+                    <h1>Students</h1>
+                    <p>Manage student registrations for the current library.</p>
                 </div>
+                <button id="open-add-modal-btn" class="primary-btn" type="button">
+                    Add Student
+                </button>
+            </div>
+
+            <section class="toolbar-card">
+                <div class="toolbar-row">
+                    <input
+                        type="text"
+                        id="student-search-input"
+                        class="search-input"
+                        placeholder="Search by code, seat, name, father name, class, date, status or shift"
+                        autocomplete="off"
+                    />
+                </div>
+            </section>
+
+            <section class="table-card">
+                <div class="table-responsive">
+                    <table class="students-table">
+                        <thead>
+                            <tr>
+                                <th>Student Code</th>
+                                <th>Seat No</th>
+                                <th>Name</th>
+                                <th>Father Name</th>
+                                <th>Class</th>
+                                <th>Joining Date</th>
+                                <th>Expiry Date</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="students-table-rows">
+                            <tr>
+                                <td colspan="9" style="text-align:center; padding:2rem;">
+                                    Loading students...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </section>
+
+        <div id="footer-container"></div>
+    </main>
+
+    <!-- ADD / EDIT STUDENT MODAL -->
+    <div id="student-modal" class="modal-overlay">
+        <div class="modal-dialog">
+
+            <div class="modal-header">
+                <h2 id="modal-title-context">
+                    Register New Library Member
+                </h2>
 
                 <button
-                    class="icon-close-btn"
                     id="close-modal-btn"
+                    class="icon-btn"
                     type="button"
                     aria-label="Close modal"
                 >
                     ×
                 </button>
-
             </div>
 
+            <div
+                id="modal-code-display-block"
+                class="hide-element modal-code-box"
+            >
+                <span>Student Code:</span>
+                <strong id="modal-student-code-preview"></strong>
+            </div>
 
-            <form id="student-form" class="form-grid-layout">
+            <form id="student-form" class="student-form">
 
-                <input type="hidden" id="form-edit-index" value="" />
-                <input type="hidden" id="form-student-code" value="" />
+                <input
+                    type="hidden"
+                    id="form-edit-index"
+                    value=""
+                />
 
+                <input
+                    type="hidden"
+                    id="form-student-code"
+                    value=""
+                />
 
-                <div class="form-field-block">
-                    <label for="std-name">Student Name</label>
+                <div class="form-grid">
 
-                    <input
-                        type="text"
-                        id="std-name"
-                        name="name"
-                        placeholder="Enter student name"
-                        required
-                    />
+                    <div class="form-group">
+                        <label for="std-name">Student Name</label>
+                        <input
+                            type="text"
+                            id="std-name"
+                            required
+                        />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="std-father">Father Name</label>
+                        <input
+                            type="text"
+                            id="std-father"
+                            required
+                        />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="std-class">Class</label>
+                        <input
+                            type="text"
+                            id="std-class"
+                            required
+                        />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="std-seat">Seat No</label>
+                        <input
+                            type="text"
+                            id="std-seat"
+                            required
+                        />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="std-shift">Shift</label>
+                        <select id="std-shift" required>
+                            <option value="">Select Shift</option>
+                            <option value="Morning">Morning</option>
+                            <option value="Evening">Evening</option>
+                            <option value="Full Day">Full Day</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="std-status">Status</label>
+                        <select id="std-status" required>
+                            <option value="">Select Status</option>
+                            <option value="Active">Active</option>
+                            <option value="Expired">Expired</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="std-joining">Joining Date</label>
+                        <input
+                            type="date"
+                            id="std-joining"
+                            required
+                        />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="std-expiry">Expiry Date</label>
+                        <input
+                            type="date"
+                            id="std-expiry"
+                            required
+                        />
+                    </div>
+
                 </div>
 
-
-                <div class="form-field-block">
-                    <label for="std-father">Father Name</label>
-
-                    <input
-                        type="text"
-                        id="std-father"
-                        name="fatherName"
-                        placeholder="Enter father name"
-                        required
-                    />
-                </div>
-
-
-                <div class="form-field-block">
-                    <label for="std-class">Class</label>
-
-                    <input
-                        type="text"
-                        id="std-class"
-                        name="studentClass"
-                        placeholder="Enter class"
-                        required
-                    />
-                </div>
-
-
-                <div class="form-field-block">
-                    <label for="std-seat">Seat Number</label>
-
-                    <input
-                        type="text"
-                        id="std-seat"
-                        name="seatNumber"
-                        placeholder="Enter seat number"
-                        required
-                    />
-                </div>
-
-
-                <div class="form-field-block">
-                    <label for="std-shift">Shift</label>
-
-                    <select id="std-shift" name="shift" required>
-
-                        <option value="">
-                            Select Shift
-                        </option>
-
-                        <option value="Morning">
-                            Morning
-                        </option>
-
-                        <option value="Afternoon">
-                            Afternoon
-                        </option>
-
-                        <option value="Evening">
-                            Evening
-                        </option>
-
-                    </select>
-                </div>
-
-
-                <div class="form-field-block">
-                    <label for="std-joining">Joining Date</label>
-
-                    <input
-                        type="date"
-                        id="std-joining"
-                        name="joiningDate"
-                        required
-                    />
-                </div>
-
-
-                <div class="form-field-block">
-                    <label for="std-expiry">Expiry Date</label>
-
-                    <input
-                        type="date"
-                        id="std-expiry"
-                        name="expiryDate"
-                        required
-                    />
-                </div>
-
-
-                <div class="form-field-block">
-                    <label for="std-status">Status</label>
-
-                    <select id="std-status" name="status" required>
-
-                        <option value="">
-                            Select Status
-                        </option>
-
-                        <option value="Active">
-                            Active
-                        </option>
-
-                        <option value="Expired">
-                            Expired
-                        </option>
-
-                    </select>
-                </div>
-
-
-                <div class="form-actions-row">
-
+                <div class="form-actions">
                     <button
+                        id="cancel-form-btn"
                         type="button"
                         class="secondary-btn"
-                        id="cancel-form-btn"
                     >
                         Cancel
                     </button>
@@ -257,21 +202,19 @@
                     >
                         Save Student
                     </button>
-
                 </div>
 
             </form>
-
         </div>
-
     </div>
 
+    <!-- FIREBASE -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
-    <!-- =========================================================
-         JAVASCRIPT
-         ========================================================= -->
-
-    <script src="../js/dashboard.js"></script>
+    <!-- APP FILES -->
+    <script src="../js/firebase-config.js"></script>
+    <script src="../js/layout.js"></script>
     <script src="../js/students.js"></script>
 
 </body>
