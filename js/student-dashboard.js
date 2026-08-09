@@ -626,13 +626,13 @@ function clearAttendanceRecordListeners() {
  * ==========================================================================
  * STUDENT ATTENDANCE REALTIME
  *
+ * DIRECT STUDENT RECORD LOADER
+ *
  * FIRESTORE:
+ * saas_libraries/{libraryId}/attendance/{YYYY-MM-DD}/records/{studentCode}
  *
- * attendance
- *    └── YYYY-MM-DD
- *          └── records
- *                └── studentCode
- *
+ * STUDENT SIDE:
+ * READ ONLY
  * ==========================================================================
  */
 
@@ -641,219 +641,223 @@ function attachStudentAttendanceRealtimeListener(db) {
     if (unsubscribeAttendanceDatesRef) {
 
         unsubscribeAttendanceDatesRef();
-
-        unsubscribeAttendanceDatesRef =
-            null;
+        unsubscribeAttendanceDatesRef = null;
 
     }
 
-
     clearAttendanceRecordListeners();
-
 
     studentAttendanceMap = {};
 
-
     renderAttendanceSummary();
-
     renderAttendanceCalendar();
 
 
-    unsubscribeAttendanceDatesRef =
+    const attendanceDatesRef =
         db
             .collection('saas_libraries')
             .doc(currentStudentLibraryId)
-            .collection('attendance')
-            .onSnapshot(
-                (snapshot) => {
-
-                    clearAttendanceRecordListeners();
+            .collection('attendance');
 
 
-                    const nextAttendanceMap = {};
+    /*
+     * Listen only to attendance DATE documents.
+     */
 
-                    const dateIds = [];
+    unsubscribeAttendanceDatesRef =
+        attendanceDatesRef.onSnapshot(
 
+            async (snapshot) => {
 
-                    /*
-                     * IMPORTANT FIX:
-                     *
-                     * Firestore attendance documents use:
-                     * YYYY-MM-DD
-                     *
-                     * Example:
-                     * 2026-08-09
-                     */
+                const nextAttendanceMap = {};
 
-                    snapshot.forEach(
-                        (doc) => {
+                /*
+                 * Get all valid attendance dates.
+                 */
 
-                            if (!doc.exists) {
-                                return;
-                            }
+                const dateIds = [];
 
+                snapshot.forEach((doc) => {
 
-                            if (
-                                !isValidDateDocumentId(
-                                    doc.id
-                                )
-                            ) {
-
-                                return;
-
-                            }
-
-
-                            dateIds.push(
-                                doc.id
-                            );
-
-                        }
-                    );
-
-
-                    if (
-                        dateIds.length ===
-                        0
-                    ) {
-
-                        studentAttendanceMap =
-                            {};
-
-                        renderAttendanceSummary();
-
-                        renderAttendanceCalendar();
-
+                    if (!doc.exists) {
                         return;
-
                     }
 
+                    if (
+                        !isValidDateDocumentId(doc.id)
+                    ) {
+                        return;
+                    }
 
-                    /*
-                     * Read ONLY current student's
-                     * attendance record.
-                     */
+                    dateIds.push(doc.id);
 
-                    dateIds.forEach(
-                        (dateDocId) => {
+                });
 
-                            const unsubscribeRecordRef =
-                                db
-                                    .collection(
-                                        'saas_libraries'
-                                    )
-                                    .doc(
-                                        currentStudentLibraryId
-                                    )
-                                    .collection(
-                                        'attendance'
-                                    )
-                                    .doc(
+
+                /*
+                 * No attendance dates.
+                 */
+
+                if (!dateIds.length) {
+
+                    studentAttendanceMap = {};
+
+                    renderAttendanceSummary();
+                    renderAttendanceCalendar();
+
+                    return;
+                }
+
+
+                /*
+                 * Read EXACT current student's record
+                 * from every attendance date.
+                 */
+
+                try {
+
+                    await Promise.all(
+
+                        dateIds.map(
+                            async (dateDocId) => {
+
+                                try {
+
+                                    const recordDoc =
+                                        await attendanceDatesRef
+                                            .doc(dateDocId)
+                                            .collection('records')
+                                            .doc(currentStudentCode)
+                                            .get();
+
+
+                                    if (
+                                        !recordDoc.exists
+                                    ) {
+
+                                        return;
+
+                                    }
+
+
+                                    const data =
+                                        recordDoc.data() ||
+                                        {};
+
+
+                                    /*
+                                     * Store only if this is
+                                     * actually the logged-in student.
+                                     */
+
+                                    const recordStudentCode =
+                                        String(
+                                            data.studentCode ||
+                                            currentStudentCode
+                                        );
+
+
+                                    if (
+                                        recordStudentCode !==
+                                        String(
+                                            currentStudentCode
+                                        )
+                                    ) {
+
+                                        return;
+
+                                    }
+
+
+                                    nextAttendanceMap[
                                         dateDocId
-                                    )
-                                    .collection(
-                                        'records'
-                                    )
-                                    .doc(
-                                        currentStudentCode
-                                    )
-                                    .onSnapshot(
-                                        (recordDoc) => {
+                                    ] = {
 
-                                            if (
-                                                recordDoc.exists
-                                            ) {
+                                        dateId:
+                                            dateDocId,
 
-                                                const data =
-                                                    recordDoc.data() ||
-                                                    {};
+                                        studentCode:
+                                            recordStudentCode,
 
+                                        name:
+                                            data.name ||
+                                            '',
 
-                                                nextAttendanceMap[
-                                                    dateDocId
-                                                ] = {
+                                        seatNumber:
+                                            data.seatNumber ||
+                                            '',
 
-                                                    dateId:
-                                                        dateDocId,
+                                        shift:
+                                            data.shift ||
+                                            '',
 
-                                                    studentCode:
-                                                        String(
-                                                            data.studentCode ||
-                                                            currentStudentCode
-                                                        ),
+                                        status:
+                                            normalizeAttendanceStatus(
+                                                data.status ||
+                                                ''
+                                            )
 
-                                                    name:
-                                                        data.name ||
-                                                        '',
+                                    };
 
-                                                    seatNumber:
-                                                        data.seatNumber ||
-                                                        '',
+                                } catch (recordError) {
 
-                                                    shift:
-                                                        data.shift ||
-                                                        '',
-
-                                                    status:
-                                                        normalizeAttendanceStatus(
-                                                            data.status ||
-                                                            ''
-                                                        )
-
-                                                };
-
-                                            } else {
-
-                                                delete nextAttendanceMap[
-                                                    dateDocId
-                                                ];
-
-                                            }
-
-
-                                            studentAttendanceMap =
-                                                {
-                                                    ...nextAttendanceMap
-                                                };
-
-
-                                            renderAttendanceSummary();
-
-                                            renderAttendanceCalendar();
-
-                                        },
-                                        (error) => {
-
-                                            console.error(
-                                                `[Attendance Record Listener Error - ${dateDocId}]:`,
-                                                error
-                                            );
-
-                                        }
+                                    console.error(
+                                        `[Student Attendance Record Read Error - ${dateDocId}]:`,
+                                        recordError
                                     );
 
+                                }
 
-                            attendanceRecordUnsubscribers.push(
-                                unsubscribeRecordRef
-                            );
+                            }
+                        )
 
-                        }
                     );
 
-                },
-                (error) => {
+
+                    /*
+                     * IMPORTANT:
+                     * Put the completed data into the
+                     * global dashboard map.
+                     */
+
+                    studentAttendanceMap = {
+                        ...nextAttendanceMap
+                    };
+
+
+                    console.log(
+                        '[Student Dashboard] Attendance Map Updated:',
+                        studentAttendanceMap
+                    );
+
+
+                    renderAttendanceSummary();
+
+                    renderAttendanceCalendar();
+
+
+                } catch (error) {
 
                     console.error(
-                        '[Attendance Dates Listener Error]:',
+                        '[Student Dashboard Attendance Loading Error]:',
                         error
                     );
 
                 }
-            );
+
+            },
+
+            (error) => {
+
+                console.error(
+                    '[Student Dashboard Attendance Dates Listener Error]:',
+                    error
+                );
+
+            }
+        );
 
 }
-
-
 /**
  * ==========================================================================
  * NORMALIZE ATTENDANCE STATUS
