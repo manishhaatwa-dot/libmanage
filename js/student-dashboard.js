@@ -1,1451 +1,499 @@
 /**
  * ==========================================================================
- * LIBMANAGE - STUDENT DASHBOARD
- * READ ONLY STUDENT PORTAL
- *
- * STUDENT PROFILE:
- * saas_libraries/{libraryId}/students/{studentCode}
- *
- * ATTENDANCE:
- * saas_libraries/{libraryId}/attendance/{YYYY-MM-DD}/records/{studentCode}
- *
- * NOTICES:
- * saas_libraries/{libraryId}/notices/{noticeId}
- *
- * STUDENT SIDE = READ ONLY
- * NO WRITE / UPDATE / DELETE
+ * LIBMANAGE SAAS ECOSYSTEM ENGINE - STUDENT DASHBOARD
+ * COMPLETE CORRECTED student-dashboard.js
  * ==========================================================================
  */
 
-let studentDashboardLibraryId = "";
-let studentDashboardCode = "";
-
-let studentDashboardData = null;
-
-let attendanceHistoryMap = {};
+let currentStudentLibraryId = '';
+let currentStudentCode = '';
+let currentStudentProfile = null;
+let studentAttendanceMap = {};
 let attendanceMonthCursor = new Date();
+let dashboardInitialized = false;
 
-let studentDashboardInitialized = false;
+let unsubscribeStudentProfileRef = null;
+let unsubscribeStudentNoticesRef = null;
+let unsubscribeAttendanceDatesRef = null;
+let attendanceRecordUnsubscribers = [];
 
+document.addEventListener('DOMContentLoaded', async () => {
+    if (dashboardInitialized) return;
+    dashboardInitialized = true;
 
-/**
- * ==========================================================================
- * PAGE INITIALIZATION
- * ==========================================================================
- */
+    currentStudentLibraryId = sessionStorage.getItem('session_library_id') || '';
+    currentStudentCode = sessionStorage.getItem('session_student_code') || sessionStorage.getItem('session_login_id') || '';
 
-document.addEventListener("DOMContentLoaded", () => {
-
-    if (studentDashboardInitialized) {
+    if (!currentStudentLibraryId || !currentStudentCode) {
+        alert('Session Error: Student login session is missing.');
+        window.location.href = '../index.html';
         return;
     }
 
-    studentDashboardInitialized = true;
+    try {
+        if (typeof loadSaaSLayoutComponent === 'function') {
+            await safeLoadLayoutComponents();
+        }
+    } catch (error) {
+        console.error('[Student Dashboard Layout Load Error]:', error);
+    }
 
-    initializeStudentDashboard();
+    bindAttendanceCalendarControls();
+    bindOptionalDashboardControls();
 
+    await initializeStudentDashboard();
 });
 
+async function safeLoadLayoutComponents() {
+    const jobs = [];
 
-/**
- * ==========================================================================
- * INITIALIZE STUDENT DASHBOARD
- * ==========================================================================
- */
+    const sidebar = document.getElementById('sidebar-container');
+    const navbar = document.getElementById('navbar-container');
+    const footer = document.getElementById('footer-container');
+
+    if (sidebar) {
+        jobs.push(
+            loadSaaSLayoutComponent('sidebar-container', '../components/sidebar.html', () => {
+                if (typeof handleSidebarActivation === 'function') handleSidebarActivation();
+            })
+        );
+    }
+
+    if (navbar) {
+        jobs.push(
+            loadSaaSLayoutComponent('navbar-container', '../components/navbar.html', () => {
+                if (typeof bindNavbarInteractions === 'function') bindNavbarInteractions();
+            })
+        );
+    }
+
+    if (footer) {
+        jobs.push(loadSaaSLayoutComponent('footer-container', '../components/footer.html'));
+    }
+
+    await Promise.all(jobs);
+}
 
 async function initializeStudentDashboard() {
-
-    /*
-     * Student login session
-     */
-
-    studentDashboardLibraryId =
-        String(
-            localStorage.getItem("session_library_id") || ""
-        ).trim();
-
-    studentDashboardCode =
-        String(
-            localStorage.getItem("session_user_code") || ""
-        ).trim();
-
-
-    /*
-     * No session
-     */
-
-    if (
-        !studentDashboardLibraryId ||
-        !studentDashboardCode
-    ) {
-
-        window.location.href = "../index.html";
-
-        return;
-    }
-
-
-    displayStudentSessionIds();
-
-    bindStudentDashboardEvents();
-
-
-    try {
-
-        await loadStudentProfile();
-
-        await loadStudentAttendance();
-
-        await loadStudentNotices();
-
-        renderAttendanceCalendar();
-
-    } catch (error) {
-
-        console.error(
-            "[Student Dashboard Initialization Error]:",
-            error
-        );
-
-    }
-
-}
-
-
-/**
- * ==========================================================================
- * DISPLAY LOGIN IDS
- * ==========================================================================
- */
-
-function displayStudentSessionIds() {
-
-    const libraryIdNode =
-        document.getElementById(
-            "student-library-id-display"
-        );
-
-    const studentCodeNode =
-        document.getElementById(
-            "student-code-display"
-        );
-
-
-    if (libraryIdNode) {
-
-        libraryIdNode.textContent =
-            studentDashboardLibraryId;
-
-    }
-
-
-    if (studentCodeNode) {
-
-        studentCodeNode.textContent =
-            studentDashboardCode;
-
-    }
-
-}
-
-
-/**
- * ==========================================================================
- * DASHBOARD EVENTS
- * ==========================================================================
- */
-
-function bindStudentDashboardEvents() {
-
-    const previousButton =
-        document.getElementById(
-            "previous-month-btn"
-        );
-
-    const nextButton =
-        document.getElementById(
-            "next-month-btn"
-        );
-
-    const exitButton =
-        document.getElementById(
-            "student-exit-btn"
-        );
-
-
-    if (previousButton) {
-
-        previousButton.addEventListener(
-            "click",
-            () => {
-
-                attendanceMonthCursor.setMonth(
-                    attendanceMonthCursor.getMonth() - 1
-                );
-
-                renderAttendanceCalendar();
-
-            }
-        );
-
-    }
-
-
-    if (nextButton) {
-
-        nextButton.addEventListener(
-            "click",
-            () => {
-
-                attendanceMonthCursor.setMonth(
-                    attendanceMonthCursor.getMonth() + 1
-                );
-
-                renderAttendanceCalendar();
-
-            }
-        );
-
-    }
-
-
-    if (exitButton) {
-
-        exitButton.addEventListener(
-            "click",
-            studentPortalLogout
-        );
-
-    }
-
-}
-
-
-/**
- * ==========================================================================
- * LOAD CURRENT STUDENT PROFILE
- * ==========================================================================
- */
-
-async function loadStudentProfile() {
-
     const db = window.db;
 
-
     if (!db) {
-
-        throw new Error(
-            "Firebase Firestore is not available."
-        );
-
-    }
-
-
-    const studentRef =
-        db
-            .collection("saas_libraries")
-            .doc(studentDashboardLibraryId)
-            .collection("students")
-            .doc(studentDashboardCode);
-
-
-    const studentSnapshot =
-        await studentRef.get();
-
-
-    if (!studentSnapshot.exists) {
-
-        alert(
-            "Student profile could not be found."
-        );
-
-        studentPortalLogout();
-
+        alert('Database Engine Offline: Firestore is not available.');
         return;
-
     }
 
+    renderAttendanceCalendarSkeleton();
+    renderAttendanceSummary();
+    setStudentIdentityPlaceholders();
 
-    studentDashboardData =
-        studentSnapshot.data() || {};
-
-
-    /*
-     * Security verification
-     */
-
-    const storedLibraryId =
-        String(
-            studentDashboardData.libraryId || ""
-        ).trim();
-
-
-    const storedStudentCode =
-        String(
-            studentDashboardData.studentCode || ""
-        ).trim();
-
-
-    if (
-        storedLibraryId &&
-        storedLibraryId !==
-            studentDashboardLibraryId
-    ) {
-
-        console.error(
-            "[Student Security] Library ID mismatch."
-        );
-
-        alert(
-            "Student session verification failed."
-        );
-
-        studentPortalLogout();
-
-        return;
-
-    }
-
-
-    if (
-        storedStudentCode &&
-        storedStudentCode !==
-            studentDashboardCode
-    ) {
-
-        console.error(
-            "[Student Security] Student Code mismatch."
-        );
-
-        alert(
-            "Student session verification failed."
-        );
-
-        studentPortalLogout();
-
-        return;
-
-    }
-
-
-    renderStudentProfile();
-
+    attachStudentProfileRealtimeListener(db);
+    attachLibraryNoticesRealtimeListener(db);
+    attachStudentAttendanceRealtimeListener(db);
 }
 
-
-/**
- * ==========================================================================
- * RENDER STUDENT PROFILE
- * ==========================================================================
- */
-
-function renderStudentProfile() {
-
-    const student =
-        studentDashboardData || {};
-
-
-    setText(
-        "student-name",
-        student.name || "-"
-    );
-
-
-    setText(
-        "student-father",
-        student.fatherName || "-"
-    );
-
-
-    setText(
-        "student-mobile",
-        student.mobile || "-"
-    );
-
-
-    setText(
-        "student-class",
-        student.studentClass || "-"
-    );
-
-
-    setText(
-        "student-seat",
-        student.seatNumber || "-"
-    );
-
-
-    setText(
-        "student-shift",
-        student.shift || "-"
-    );
-
-
-    setText(
-        "student-joining",
-        formatDisplayDate(
-            student.joiningDate
-        ) || "-"
-    );
-
-
-    setText(
-        "student-expiry",
-        formatDisplayDate(
-            student.expiryDate
-        ) || "-"
-    );
-
-
-    setText(
-        "student-status",
-        student.status || "-"
-    );
-
+function setStudentIdentityPlaceholders() {
+    setTextIfExists('student-login-id', currentStudentCode);
+    setTextIfExists('student-library-id', currentStudentLibraryId);
 }
 
+function bindAttendanceCalendarControls() {
+    const prevBtn =
+        document.getElementById('attendance-prev-month') ||
+        document.getElementById('calendar-prev-btn') ||
+        document.getElementById('prev-month-btn');
 
-/**
- * ==========================================================================
- * LOAD STUDENT ATTENDANCE
- *
- * IMPORTANT:
- *
- * Firebase structure:
- *
- * saas_libraries
- *    └── LIBRARY_ID
- *         └── attendance
- *              └── 2026-08-09
- *                   └── records
- *                        └── LIB001
- *
- * We read ONLY the currently logged-in student's document.
- * ==========================================================================
- */
+    const nextBtn =
+        document.getElementById('attendance-next-month') ||
+        document.getElementById('calendar-next-btn') ||
+        document.getElementById('next-month-btn');
 
-async function loadStudentAttendance() {
-
-    const db = window.db;
-
-
-    if (!db) {
-
-        throw new Error(
-            "Firestore unavailable."
-        );
-
-    }
-
-
-    attendanceHistoryMap = {};
-
-
-    const attendanceCollection =
-        db
-            .collection("saas_libraries")
-            .doc(studentDashboardLibraryId)
-            .collection("attendance");
-
-
-    /*
-     * Get all attendance DATE documents
-     * belonging to this library.
-     */
-
-    const attendanceDatesSnapshot =
-        await attendanceCollection.get();
-
-
-    console.log(
-        "[Student Attendance] Date documents found:",
-        attendanceDatesSnapshot.size
-    );
-
-
-    /*
-     * Check every attendance date.
-     */
-
-    for (
-        const attendanceDateDoc
-        of attendanceDatesSnapshot.docs
-    ) {
-
-        /*
-         * IMPORTANT:
-         *
-         * Use Firebase document ID as the date.
-         *
-         * Example:
-         * 2026-08-09
-         */
-
-        const dateId =
-            String(
-                attendanceDateDoc.id || ""
-            ).trim();
-
-
-        if (!isValidAttendanceDate(dateId)) {
-
-            continue;
-
-        }
-
-
-        /*
-         * Read ONLY:
-         *
-         * records/{logged-in-student-code}
-         */
-
-        const recordSnapshot =
-            await attendanceCollection
-                .doc(dateId)
-                .collection("records")
-                .doc(studentDashboardCode)
-                .get();
-
-
-        /*
-         * No attendance for this student on this date.
-         */
-
-        if (!recordSnapshot.exists) {
-
-            continue;
-
-        }
-
-
-        const recordData =
-            recordSnapshot.data() || {};
-
-
-        /*
-         * Extra student-code safety.
-         */
-
-        const recordStudentCode =
-            String(
-                recordData.studentCode || ""
-            ).trim();
-
-
-        if (
-            recordStudentCode !==
-            studentDashboardCode
-        ) {
-
-            continue;
-
-        }
-
-
-        /*
-         * Shift safety.
-         *
-         * Only reject when BOTH values exist
-         * and they actually differ.
-         */
-
-        const studentShift =
-            String(
-                studentDashboardData?.shift || ""
-            ).trim();
-
-
-        const attendanceShift =
-            String(
-                recordData.shift || ""
-            ).trim();
-
-
-        if (
-            studentShift &&
-            attendanceShift &&
-            studentShift !== attendanceShift
-        ) {
-
-            console.warn(
-                "[Student Attendance] Shift mismatch:",
-                dateId,
-                studentShift,
-                attendanceShift
+    if (prevBtn) {
+        prevBtn.addEventListener('click', () => {
+            attendanceMonthCursor = new Date(
+                attendanceMonthCursor.getFullYear(),
+                attendanceMonthCursor.getMonth() - 1,
+                1
             );
-
-            continue;
-
-        }
-
-
-        /*
-         * Normalize status.
-         */
-
-        const rawStatus =
-            String(
-                recordData.status || ""
-            ).trim()
-            .toLowerCase();
-
-
-        let normalizedStatus = "";
-
-
-        if (rawStatus === "present") {
-
-            normalizedStatus = "Present";
-
-        }
-
-
-        if (rawStatus === "absent") {
-
-            normalizedStatus = "Absent";
-
-        }
-
-
-        if (!normalizedStatus) {
-
-            continue;
-
-        }
-
-
-        /*
-         * IMPORTANT:
-         *
-         * Always use Firebase DATE DOCUMENT ID.
-         *
-         * This avoids any date-format problem inside
-         * recordData.date.
-         */
-
-        attendanceHistoryMap[dateId] = {
-
-            status:
-                normalizedStatus,
-
-            shift:
-                attendanceShift,
-
-            date:
-                dateId
-
-        };
-
-
-        console.log(
-            "[Student Attendance] Loaded:",
-            dateId,
-            normalizedStatus
-        );
-
+            renderAttendanceCalendar();
+        });
     }
 
-
-    console.log(
-        "[Student Attendance] Final Map:",
-        attendanceHistoryMap
-    );
-
-
-    updateAttendanceTotals();
-
+    if (nextBtn) {
+        nextBtn.addEventListener('click', () => {
+            attendanceMonthCursor = new Date(
+                attendanceMonthCursor.getFullYear(),
+                attendanceMonthCursor.getMonth() + 1,
+                1
+            );
+            renderAttendanceCalendar();
+        });
+    }
 }
 
-
-/**
- * ==========================================================================
- * VALIDATE FIREBASE ATTENDANCE DATE
- * ==========================================================================
- */
-
-function isValidAttendanceDate(value) {
-
-    const match =
-        String(value || "").match(
-            /^(\d{4})-(\d{2})-(\d{2})$/
-        );
-
-
-    if (!match) {
-        return false;
+function bindOptionalDashboardControls() {
+    const refreshBtn = document.getElementById('attendance-refresh-btn');
+    if (refreshBtn) {
+        refreshBtn.addEventListener('click', () => {
+            renderAttendanceSummary();
+            renderAttendanceCalendar();
+        });
     }
-
-
-    const year =
-        Number(match[1]);
-
-    const month =
-        Number(match[2]);
-
-    const day =
-        Number(match[3]);
-
-
-    if (
-        month < 1 ||
-        month > 12 ||
-        day < 1 ||
-        day > 31
-    ) {
-
-        return false;
-
-    }
-
-
-    const testDate =
-        new Date(
-            year,
-            month - 1,
-            day
-        );
-
-
-    return (
-        testDate.getFullYear() === year &&
-        testDate.getMonth() === month - 1 &&
-        testDate.getDate() === day
-    );
-
 }
 
-
-/**
- * ==========================================================================
- * ATTENDANCE TOTALS
- * ==========================================================================
- */
-
-function updateAttendanceTotals() {
-
-    let presentCount = 0;
-    let absentCount = 0;
-
-
-    Object.keys(
-        attendanceHistoryMap
-    ).forEach((date) => {
-
-        const status =
-            attendanceHistoryMap[date]?.status;
-
-
-        if (status === "Present") {
-
-            presentCount++;
-
-        }
-
-
-        if (status === "Absent") {
-
-            absentCount++;
-
-        }
-
-    });
-
-
-    setText(
-        "total-present",
-        presentCount
-    );
-
-
-    setText(
-        "total-absent",
-        absentCount
-    );
-
-}
-
-
-/**
- * ==========================================================================
- * RENDER ATTENDANCE CALENDAR
- * ==========================================================================
- */
-
-function renderAttendanceCalendar() {
-
-    const calendar =
-        document.getElementById(
-            "attendance-calendar"
-        );
-
-    const title =
-        document.getElementById(
-            "calendar-month-title"
-        );
-
-
-    if (!calendar || !title) {
-
-        return;
-
+function attachStudentProfileRealtimeListener(db) {
+    if (unsubscribeStudentProfileRef) {
+        unsubscribeStudentProfileRef();
+        unsubscribeStudentProfileRef = null;
     }
 
-
-    const year =
-        attendanceMonthCursor.getFullYear();
-
-
-    const month =
-        attendanceMonthCursor.getMonth();
-
-
-    const monthName =
-        attendanceMonthCursor.toLocaleString(
-            "en-IN",
-            {
-                month: "long"
+    unsubscribeStudentProfileRef = db
+        .collection('saas_libraries')
+        .doc(currentStudentLibraryId)
+        .collection('students')
+        .doc(currentStudentCode)
+        .onSnapshot((doc) => {
+            if (!doc.exists) {
+                console.warn('[Student Dashboard]: Student profile not found for code:', currentStudentCode);
+                currentStudentProfile = null;
+                renderStudentProfileFallback();
+                return;
             }
-        );
 
+            currentStudentProfile = {
+                studentCode: doc.id,
+                ...(doc.data() || {})
+            };
 
-    title.textContent =
-        `${monthName} ${year}`;
-
-
-    /*
-     * First weekday of month.
-     */
-
-    const firstDay =
-        new Date(
-            year,
-            month,
-            1
-        ).getDay();
-
-
-    /*
-     * Number of days in month.
-     */
-
-    const daysInMonth =
-        new Date(
-            year,
-            month + 1,
-            0
-        ).getDate();
-
-
-    let html = "";
-
-
-    /*
-     * Empty cells before day 1.
-     */
-
-    for (
-        let i = 0;
-        i < firstDay;
-        i++
-    ) {
-
-        html += `
-            <div class="calendar-day empty"></div>
-        `;
-
-    }
-
-
-    const today =
-        new Date();
-
-
-    /*
-     * Render every date.
-     */
-
-    for (
-        let day = 1;
-        day <= daysInMonth;
-        day++
-    ) {
-
-        const monthString =
-            String(month + 1)
-                .padStart(2, "0");
-
-
-        const dayString =
-            String(day)
-                .padStart(2, "0");
-
-
-        /*
-         * EXACT same format as Firebase:
-         *
-         * 2026-08-09
-         */
-
-        const dateKey =
-            `${year}-${monthString}-${dayString}`;
-
-
-        const attendance =
-            attendanceHistoryMap[dateKey];
-
-
-        let statusHtml = "";
-
-
-        /*
-         * PRESENT
-         */
-
-        if (
-            attendance &&
-            attendance.status === "Present"
-        ) {
-
-            statusHtml = `
-                <span class="calendar-status present">
-                    Present
-                </span>
-            `;
-
-        }
-
-
-        /*
-         * ABSENT
-         */
-
-        else if (
-            attendance &&
-            attendance.status === "Absent"
-        ) {
-
-            statusHtml = `
-                <span class="calendar-status absent">
-                    Absent
-                </span>
-            `;
-
-        }
-
-
-        const isToday =
-            today.getFullYear() === year &&
-            today.getMonth() === month &&
-            today.getDate() === day;
-
-
-        html += `
-            <div
-                class="calendar-day ${isToday ? "today" : ""}"
-                data-date="${dateKey}"
-                title="${formatDisplayDate(dateKey)}"
-            >
-
-                <span class="calendar-day-number">
-                    ${day}
-                </span>
-
-                ${statusHtml}
-
-            </div>
-        `;
-
-    }
-
-
-    calendar.innerHTML =
-        html;
-
+            renderStudentProfile(currentStudentProfile);
+        }, (error) => {
+            console.error('[Student Dashboard Student Profile Listener Error]:', error);
+        });
 }
 
+function attachLibraryNoticesRealtimeListener(db) {
+    const noticesContainer =
+        document.getElementById('student-notices-list') ||
+        document.getElementById('library-notices-list') ||
+        document.getElementById('notice-list');
 
-/**
- * ==========================================================================
- * LOAD STUDENT NOTICES
- * ==========================================================================
- */
+    if (!noticesContainer) return;
 
-async function loadStudentNotices() {
-
-    const db =
-        window.db;
-
-
-    const noticeContainer =
-        document.getElementById(
-            "student-notice-list"
-        );
-
-
-    if (!noticeContainer) {
-
-        return;
-
+    if (unsubscribeStudentNoticesRef) {
+        unsubscribeStudentNoticesRef();
+        unsubscribeStudentNoticesRef = null;
     }
 
+    unsubscribeStudentNoticesRef = db
+        .collection('saas_libraries')
+        .doc(currentStudentLibraryId)
+        .collection('notices')
+        .orderBy('updatedAt', 'desc')
+        .onSnapshot((snapshot) => {
+            const notices = [];
+            snapshot.forEach((doc) => {
+                if (doc.id === 'anchor_node') return;
+                notices.push({
+                    id: doc.id,
+                    ...(doc.data() || {})
+                });
+            });
+            renderStudentNotices(notices);
+        }, (error) => {
+            console.error('[Student Dashboard Notices Listener Error]:', error);
+        });
+}
 
-    if (!db) {
-
-        noticeContainer.innerHTML = `
-            <div class="empty-message">
-                Unable to connect to the notice system.
-            </div>
-        `;
-
-        return;
-
-    }
-
-
-    try {
-
-        const noticesSnapshot =
-            await db
-                .collection("saas_libraries")
-                .doc(studentDashboardLibraryId)
-                .collection("notices")
-                .get();
-
-
-        if (noticesSnapshot.empty) {
-
-            noticeContainer.innerHTML = `
-                <div class="empty-message">
-                    No notices available right now.
-                </div>
-            `;
-
-            return;
-
+function clearAttendanceRecordListeners() {
+    attendanceRecordUnsubscribers.forEach((unsubscribe) => {
+        try {
+            if (typeof unsubscribe === 'function') unsubscribe();
+        } catch (error) {
+            console.warn('[Attendance Record Listener Cleanup Warning]:', error);
         }
+    });
+    attendanceRecordUnsubscribers = [];
+}
 
+function attachStudentAttendanceRealtimeListener(db) {
+    if (unsubscribeAttendanceDatesRef) {
+        unsubscribeAttendanceDatesRef();
+        unsubscribeAttendanceDatesRef = null;
+    }
 
-        const notices = [];
+    clearAttendanceRecordListeners();
+    studentAttendanceMap = {};
+    renderAttendanceSummary();
+    renderAttendanceCalendar();
 
+    unsubscribeAttendanceDatesRef = db
+        .collection('saas_libraries')
+        .doc(currentStudentLibraryId)
+        .collection('attendance')
+        .onSnapshot((snapshot) => {
+            clearAttendanceRecordListeners();
 
-        noticesSnapshot.forEach((doc) => {
+            const nextAttendanceMap = {};
+            const dateIds = [];
 
-            const data =
-                doc.data() || {};
-
-
-            notices.push({
-
-                id:
-                    doc.id,
-
-                title:
-                    data.title ||
-                    "Library Notice",
-
-                message:
-                    data.message ||
-                    "",
-
-                createdAt:
-                    data.createdAt ||
-                    null,
-
-                updatedAt:
-                    data.updatedAt ||
-                    null
-
+            snapshot.forEach((doc) => {
+                if (!doc.exists) return;
+                if (!isValidDateDocumentId(doc.id)) return;
+                dateIds.push(doc.id);
             });
 
-        });
-
-
-        notices.sort(
-            (a, b) => {
-
-                const aTime =
-                    getTimestampMillis(
-                        a.createdAt
-                    ) ||
-                    getTimestampMillis(
-                        a.updatedAt
-                    ) ||
-                    0;
-
-
-                const bTime =
-                    getTimestampMillis(
-                        b.createdAt
-                    ) ||
-                    getTimestampMillis(
-                        b.updatedAt
-                    ) ||
-                    0;
-
-
-                return bTime - aTime;
-
+            if (dateIds.length === 0) {
+                studentAttendanceMap = {};
+                renderAttendanceSummary();
+                renderAttendanceCalendar();
+                return;
             }
+
+            dateIds.forEach((dateDocId) => {
+                const unsubscribeRecordRef = db
+                    .collection('saas_libraries')
+                    .doc(currentStudentLibraryId)
+                    .collection('attendance')
+                    .doc(dateDocId)
+                    .collection('records')
+                    .doc(currentStudentCode)
+                    .onSnapshot((recordDoc) => {
+                        if (recordDoc.exists) {
+                            const data = recordDoc.data() || {};
+                            nextAttendanceMap[dateDocId] = {
+                                dateId: dateDocId,
+                                studentCode: data.studentCode || currentStudentCode,
+                                name: data.name || '',
+                                seatNumber: data.seatNumber || '',
+                                shift: data.shift || '',
+                                status: normalizeAttendanceStatus(data.status || '')
+                            };
+                        } else {
+                            delete nextAttendanceMap[dateDocId];
+                        }
+
+                        studentAttendanceMap = { ...nextAttendanceMap };
+                        renderAttendanceSummary();
+                        renderAttendanceCalendar();
+                    }, (error) => {
+                        console.error(`[Attendance Record Listener Error - ${dateDocId}]:`, error);
+                    });
+
+                attendanceRecordUnsubscribers.push(unsubscribeRecordRef);
+            });
+        }, (error) => {
+            console.error('[Attendance Dates Listener Error]:', error);
+        });
+}
+
+function normalizeAttendanceStatus(status) {
+    const normalized = String(status || '').trim().toLowerCase();
+    if (normalized === 'present') return 'Present';
+    if (normalized === 'absent') return 'Absent';
+    return '';
+}
+
+function isValidDateDocumentId(value) {
+    return /^d{4}-d{2}-d{2}$/.test(String(value || '').trim());
+}
+
+function parseDateIdToLocalDate(dateId) {
+    if (!isValidDateDocumentId(dateId)) return null;
+    const [year, month, day] = dateId.split('-').map(Number);
+    return new Date(year, month - 1, day);
+}
+
+function formatDateIdFromParts(year, monthIndex, day) {
+    const yearPart = String(year);
+    const monthPart = String(monthIndex + 1).padStart(2, '0');
+    const dayPart = String(day).padStart(2, '0');
+    return `${yearPart}-${monthPart}-${dayPart}`;
+}
+
+function renderStudentProfile(profile) {
+    setTextIfExists('student-login-id', profile.studentCode || currentStudentCode);
+    setTextIfExists('student-library-id', currentStudentLibraryId);
+    setTextIfExists('student-name', profile.name || '');
+    setTextIfExists('student-shift', profile.shift || '');
+    setTextIfExists('student-seat-number', profile.seatNumber || '');
+    setTextIfExists('student-seat', profile.seatNumber || '');
+    setTextIfExists('student-class', profile.studentClass || '');
+    setTextIfExists('student-status', profile.status || '');
+    setTextIfExists('student-father-name', profile.fatherName || '');
+    setTextIfExists('student-code', profile.studentCode || currentStudentCode);
+
+    const profileNameInput = document.getElementById('profile-student-name');
+    if (profileNameInput) profileNameInput.value = profile.name || '';
+}
+
+function renderStudentProfileFallback() {
+    setTextIfExists('student-login-id', currentStudentCode);
+    setTextIfExists('student-library-id', currentStudentLibraryId);
+}
+
+function renderStudentNotices(notices) {
+    const noticesContainer =
+        document.getElementById('student-notices-list') ||
+        document.getElementById('library-notices-list') ||
+        document.getElementById('notice-list');
+
+    if (!noticesContainer) return;
+
+    if (!Array.isArray(notices) || notices.length === 0) {
+        noticesContainer.innerHTML = '<div class="notice-empty-state">No notices available.</div>';
+        return;
+    }
+
+    noticesContainer.innerHTML = notices.map((notice) => {
+        const title = escapeHtml(notice.title || 'Notice');
+        const message = escapeHtml(notice.message || notice.description || '');
+        const dateText = escapeHtml(
+            notice.date ||
+            extractDisplayDateFromTimestamp(notice.updatedAt) ||
+            ''
         );
 
-
-        noticeContainer.innerHTML =
-            notices
-                .map(
-                    (notice) => {
-
-                        return `
-                            <div class="notice-item">
-
-                                <h3>
-                                    ${escapeHtml(
-                                        notice.title
-                                    )}
-                                </h3>
-
-                                <p>
-                                    ${escapeHtml(
-                                        notice.message
-                                    )}
-                                </p>
-
-                                <span class="notice-date">
-                                    ${escapeHtml(
-                                        formatNoticeDate(
-                                            notice.createdAt,
-                                            notice.updatedAt
-                                        )
-                                    )}
-                                </span>
-
-                            </div>
-                        `;
-
-                    }
-                )
-                .join("");
-
-
-    } catch (error) {
-
-        console.error(
-            "[Student Notice Read Error]:",
-            error
-        );
-
-
-        noticeContainer.innerHTML = `
-            <div class="empty-message">
-                Unable to load notices.
+        return `
+            <div class="notice-item">
+                <div class="notice-item-header">
+                    <strong>${title}</strong>
+                    <span>${dateText}</span>
+                </div>
+                <div class="notice-item-body">${message}</div>
             </div>
         `;
-
-    }
-
+    }).join('');
 }
 
+function renderAttendanceSummary() {
+    const attendanceEntries = Object.values(studentAttendanceMap);
+    let totalPresent = 0;
+    let totalAbsent = 0;
 
-/**
- * ==========================================================================
- * LOGOUT
- * ==========================================================================
- */
+    attendanceEntries.forEach((entry) => {
+        if (!entry || entry.studentCode !== currentStudentCode) return;
+        if (entry.status === 'Present') totalPresent += 1;
+        if (entry.status === 'Absent') totalAbsent += 1;
+    });
 
-function studentPortalLogout() {
+    setTextIfExists('total-present', String(totalPresent));
+    setTextIfExists('totalPresent', String(totalPresent));
+    setTextIfExists('attendance-total-present', String(totalPresent));
 
-    localStorage.removeItem(
-        "session_role"
-    );
-
-    localStorage.removeItem(
-        "session_user_code"
-    );
-
-    localStorage.removeItem(
-        "session_student_seat"
-    );
-
-    localStorage.removeItem(
-        "session_library_id"
-    );
-
-    localStorage.removeItem(
-        "session_library_name"
-    );
-
-
-    window.location.href =
-        "../index.html";
-
+    setTextIfExists('total-absent', String(totalAbsent));
+    setTextIfExists('totalAbsent', String(totalAbsent));
+    setTextIfExists('attendance-total-absent', String(totalAbsent));
 }
 
+function renderAttendanceCalendarSkeleton() {
+    const grid =
+        document.getElementById('attendance-calendar-grid') ||
+        document.getElementById('attendance-calendar') ||
+        document.getElementById('calendar-grid');
 
-/**
- * ==========================================================================
- * DATE DISPLAY
- *
- * Firebase:
- * YYYY-MM-DD
- *
- * Website:
- * DD/MM/YYYY
- * ==========================================================================
- */
+    if (!grid) return;
 
-function formatDisplayDate(value) {
+    renderAttendanceCalendar();
+}
 
-    const dateString =
-        String(
-            value == null
-                ? ""
-                : value
-        ).trim();
+function renderAttendanceCalendar() {
+    const monthLabelNode =
+        document.getElementById('attendance-month-label') ||
+        document.getElementById('calendar-month-label') ||
+        document.getElementById('attendance-current-month');
 
+    const grid =
+        document.getElementById('attendance-calendar-grid') ||
+        document.getElementById('attendance-calendar') ||
+        document.getElementById('calendar-grid');
 
-    if (!dateString) {
+    if (!grid) return;
 
-        return "";
+    const year = attendanceMonthCursor.getFullYear();
+    const monthIndex = attendanceMonthCursor.getMonth();
 
+    if (monthLabelNode) {
+        monthLabelNode.textContent = attendanceMonthCursor.toLocaleString('en-US', {
+            month: 'long',
+            year: 'numeric'
+        });
     }
 
+    const firstDay = new Date(year, monthIndex, 1);
+    const startingWeekDay = firstDay.getDay();
+    const daysInMonth = new Date(year, monthIndex + 1, 0).getDate();
 
-    const parts =
-        dateString.split("-");
+    let html = '';
 
+    const weekLabels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    html += weekLabels.map((label) => `<div class="attendance-weekday">${label}</div>`).join('');
 
-    if (parts.length === 3) {
+    for (let i = 0; i < startingWeekDay; i++) {
+        html += '<div class="attendance-day empty"></div>';
+    }
 
-        const year =
-            parts[0];
+    for (let day = 1; day <= daysInMonth; day++) {
+        const dateId = formatDateIdFromParts(year, monthIndex, day);
+        const attendance = studentAttendanceMap[dateId];
+        const status = attendance && attendance.studentCode === currentStudentCode
+            ? normalizeAttendanceStatus(attendance.status)
+            : '';
 
-        const month =
-            parts[1];
+        let statusClass = '';
+        let statusLabel = '';
 
-        const day =
-            parts[2];
-
-
-        if (
-            year.length === 4 &&
-            month.length >= 1 &&
-            day.length >= 1
-        ) {
-
-            return (
-                `${day.padStart(2, "0")}/` +
-                `${month.padStart(2, "0")}/` +
-                `${year}`
-            );
-
+        if (status === 'Present') {
+            statusClass = 'present';
+            statusLabel = 'Present';
+        } else if (status === 'Absent') {
+            statusClass = 'absent';
+            statusLabel = 'Absent';
         }
 
+        html += `
+            <div class="attendance-day ${statusClass}">
+                <div class="attendance-date-number">${day}</div>
+                <div class="attendance-status-text">${statusLabel}</div>
+            </div>
+        `;
     }
 
-
-    return dateString;
-
+    grid.innerHTML = html;
 }
 
-
-/**
- * ==========================================================================
- * FIREBASE TIMESTAMP
- * ==========================================================================
- */
-
-function getTimestampMillis(value) {
-
-    if (!value) {
-
-        return null;
-
-    }
-
-
-    if (
-        typeof value.toMillis ===
-        "function"
-    ) {
-
-        return value.toMillis();
-
-    }
-
-
-    if (
-        typeof value.toDate ===
-        "function"
-    ) {
-
-        const date =
-            value.toDate();
-
-
-        return (
-            date instanceof Date &&
-            !Number.isNaN(
-                date.getTime()
-            )
-        )
-            ? date.getTime()
-            : null;
-
-    }
-
-
-    if (value.seconds) {
-
-        return (
-            value.seconds * 1000
-        ) +
-        Math.floor(
-            (value.nanoseconds || 0) /
-            1000000
-        );
-
-    }
-
-
-    return null;
-
-}
-
-
-/**
- * ==========================================================================
- * NOTICE DATE FORMAT
- * ==========================================================================
- */
-
-function formatNoticeDate(
-    createdAt,
-    updatedAt
-) {
-
-    const source =
-        createdAt || updatedAt;
-
-
-    if (!source) {
-
-        return "Recently";
-
-    }
-
-
-    let date = null;
-
-
-    if (
-        typeof source.toDate ===
-        "function"
-    ) {
-
-        date =
-            source.toDate();
-
-    }
-
-    else if (
-        source.seconds
-    ) {
-
-        date =
-            new Date(
-                source.seconds * 1000
-            );
-
-    }
-
-
-    if (
-        !date ||
-        Number.isNaN(
-            date.getTime()
-        )
-    ) {
-
-        return "Recently";
-
-    }
-
-
-    return date.toLocaleString(
-        "en-IN",
-        {
-            day: "2-digit",
-            month: "short",
-            year: "numeric",
-            hour: "2-digit",
-            minute: "2-digit"
+function extractDisplayDateFromTimestamp(timestamp) {
+    try {
+        if (!timestamp) return '';
+        if (typeof timestamp.toDate === 'function') {
+            const date = timestamp.toDate();
+            return date.toLocaleDateString('en-GB');
         }
-    );
-
-}
-
-
-/**
- * ==========================================================================
- * SAFE TEXT
- * ==========================================================================
- */
-
-function setText(
-    elementId,
-    value
-) {
-
-    const element =
-        document.getElementById(
-            elementId
-        );
-
-
-    if (element) {
-
-        element.textContent =
-            value == null
-                ? "-"
-                : value;
-
+        return '';
+    } catch (error) {
+        return '';
     }
-
 }
 
-
-/**
- * ==========================================================================
- * HTML ESCAPE
- * ==========================================================================
- */
+function setTextIfExists(id, value) {
+    const node = document.getElementById(id);
+    if (node) node.textContent = value == null ? '' : String(value);
+}
 
 function escapeHtml(value) {
-
-    return String(
-        value == null
-            ? ""
-            : value
-    )
-        .replace(
-            /&/g,
-            "&amp;"
-        )
-        .replace(
-            /</g,
-            "&lt;"
-        )
-        .replace(
-            />/g,
-            "&gt;"
-        )
-        .replace(
-            /"/g,
-            "&quot;"
-        )
-        .replace(
-            /'/g,
-            "&#x27;"
-        );
-
+    return String(value == null ? '' : value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
 }
+
+window.addEventListener('beforeunload', () => {
+    try {
+        if (typeof unsubscribeStudentProfileRef === 'function') unsubscribeStudentProfileRef();
+        if (typeof unsubscribeStudentNoticesRef === 'function') unsubscribeStudentNoticesRef();
+        if (typeof unsubscribeAttendanceDatesRef === 'function') unsubscribeAttendanceDatesRef();
+        clearAttendanceRecordListeners();
+    } catch (error) {
+        console.warn('[Student Dashboard Cleanup Warning]:', error);
+    }
+});
