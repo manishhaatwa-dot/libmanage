@@ -434,6 +434,44 @@ function safeUpper(value) {
 
 /**
  * ==========================================================================
+ * DATE DISPLAY FORMAT
+ * FIREBASE VALUE REMAINS YYYY-MM-DD
+ * DISPLAY ONLY = DD/MM/YYYY
+ * ==========================================================================
+ */
+
+function formatDisplayDate(value) {
+
+    const dateString =
+        String(value == null ? '' : value).trim();
+
+    if (!dateString) {
+        return '';
+    }
+
+    const parts = dateString.split('-');
+
+    if (parts.length === 3) {
+
+        const year = parts[0];
+        const month = parts[1];
+        const day = parts[2];
+
+        if (
+            year.length === 4 &&
+            month.length >= 1 &&
+            day.length >= 1
+        ) {
+            return `${day.padStart(2, '0')}/${month.padStart(2, '0')}/${year}`;
+        }
+    }
+
+    return dateString;
+}
+
+
+/**
+ * ==========================================================================
  * PAINT STUDENT TABLE
  * ==========================================================================
  */
@@ -504,14 +542,21 @@ function paintStudentDirectoryTableGrid(dataset) {
                     student.studentClass || ''
                 );
 
+            /*
+             * DATE DISPLAY ONLY
+             */
             const joiningDate =
                 escapeHtml(
-                    student.joiningDate || ''
+                    formatDisplayDate(
+                        student.joiningDate || ''
+                    )
                 );
 
             const expiryDate =
                 escapeHtml(
-                    student.expiryDate || ''
+                    formatDisplayDate(
+                        student.expiryDate || ''
+                    )
                 );
 
             const status =
