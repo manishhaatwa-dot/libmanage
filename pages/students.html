@@ -1,23 +1,23 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>Students - Library Admin</title>
 
-    <link rel="stylesheet" href="../css/style.css" />
-    <link rel="stylesheet" href="../css/students.css" />
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/students.css">
 </head>
 
 <body>
 
-    <!-- SIDEBAR -->
+    <!-- Sidebar -->
     <div id="sidebar-container"></div>
 
     <main class="page-shell">
 
-        <!-- NAVBAR -->
+        <!-- Navbar -->
         <div id="navbar-container"></div>
 
         <section class="page-content">
@@ -25,17 +25,14 @@
             <!-- PAGE HEADER -->
             <div class="page-header">
                 <div>
-                    <h1>Students Directory</h1>
-                    <p>
-                        Manage all registered students under the selected library branch.
-                    </p>
+                    <h1>Students</h1>
+                    <p>Manage student registrations for the current library.</p>
                 </div>
 
                 <button
                     id="open-add-modal-btn"
                     class="primary-btn"
-                    type="button"
-                >
+                    type="button">
                     + Add Student
                 </button>
             </div>
@@ -50,16 +47,16 @@
                         type="text"
                         id="student-search-input"
                         class="search-input"
-                        placeholder="Search by name, unique code, seat or class..."
+                        placeholder="Search student by code, seat, name, father name, class, date, status or shift..."
                         autocomplete="off"
-                    />
+                    >
 
                 </div>
 
             </section>
 
 
-            <!-- STUDENT TABLE -->
+            <!-- STUDENTS TABLE -->
             <section class="table-card">
 
                 <div class="table-responsive">
@@ -68,10 +65,10 @@
 
                         <thead>
                             <tr>
-                                <th>Unique Login Code</th>
+                                <th>Student Code</th>
                                 <th>Seat No</th>
-                                <th>Student Name</th>
-                                <th>Father's Name</th>
+                                <th>Name</th>
+                                <th>Father Name</th>
                                 <th>Class</th>
                                 <th>Joining Date</th>
                                 <th>Expiry Date</th>
@@ -86,14 +83,8 @@
                                 <td
                                     colspan="9"
                                     class="table-empty"
-                                    style="
-                                        text-align:center;
-                                        padding:2rem;
-                                        font-style:italic;
-                                        color:var(--text-muted);
-                                    "
-                                >
-                                    Loading student records...
+                                    style="text-align:center; padding:2rem;">
+                                    Loading students...
                                 </td>
                             </tr>
 
@@ -114,61 +105,73 @@
     </main>
 
 
+
     <!-- =========================================================
          ADD / EDIT STUDENT MODAL
          ========================================================= -->
 
-    <div id="student-modal" class="modal-overlay">
+    <div
+        id="student-modal"
+        class="modal-overlay">
 
         <div class="modal-dialog">
 
             <!-- MODAL HEADER -->
             <div class="modal-header">
 
-                <h2 id="modal-title-context">
-                    Register New Library Member
-                </h2>
+                <div>
+                    <h2 id="modal-title-context">
+                        Register New Library Member
+                    </h2>
+
+                    <p style="margin:4px 0 0; color:var(--text-muted); font-size:0.9rem;">
+                        Enter student registration details
+                    </p>
+                </div>
 
                 <button
                     id="close-modal-btn"
                     class="icon-btn"
                     type="button"
-                    aria-label="Close modal"
-                >
+                    aria-label="Close modal">
                     ×
                 </button>
 
             </div>
 
 
-            <!-- STUDENT CODE -->
+            <!-- STUDENT CODE DISPLAY DURING EDIT -->
             <div
                 id="modal-code-display-block"
-                class="hide-element modal-code-box"
-            >
-                <span>Student Login Code:</span>
+                class="hide-element modal-code-box">
+
+                <span>Student Code</span>
 
                 <strong id="modal-student-code-preview"></strong>
+
             </div>
 
 
             <!-- STUDENT FORM -->
-            <form id="student-form" class="student-form">
+            <form
+                id="student-form"
+                class="student-form">
 
-                <!-- INTERNAL EDIT DATA -->
+                <!-- INTERNAL STATE -->
                 <input
                     type="hidden"
                     id="form-edit-index"
                     value=""
-                />
+                >
 
                 <input
                     type="hidden"
                     id="form-student-code"
                     value=""
-                />
+                >
 
 
+                <!-- FORM GRID -->
                 <div class="form-grid">
 
 
@@ -184,7 +187,7 @@
                             id="std-name"
                             placeholder="Enter student name"
                             required
-                        />
+                        >
 
                     </div>
 
@@ -201,7 +204,7 @@
                             id="std-father"
                             placeholder="Enter father name"
                             required
-                        />
+                        >
 
                     </div>
 
@@ -216,9 +219,9 @@
                         <input
                             type="text"
                             id="std-class"
-                            placeholder="Enter class"
+                            placeholder="e.g. 10th, 12th, B.A."
                             required
-                        />
+                        >
 
                     </div>
 
@@ -227,7 +230,7 @@
                     <div class="form-group">
 
                         <label for="std-seat">
-                            Seat Number
+                            Seat No
                         </label>
 
                         <input
@@ -235,7 +238,7 @@
                             id="std-seat"
                             placeholder="Enter seat number"
                             required
-                        />
+                        >
 
                     </div>
 
@@ -277,7 +280,9 @@
                             Status
                         </label>
 
-                        <select id="std-status" required>
+                        <select
+                            id="std-status"
+                            required>
 
                             <option value="">
                                 Select Status
@@ -307,7 +312,7 @@
                             type="date"
                             id="std-joining"
                             required
-                        />
+                        >
 
                     </div>
 
@@ -323,7 +328,7 @@
                             type="date"
                             id="std-expiry"
                             required
-                        />
+                        >
 
                     </div>
 
@@ -336,15 +341,13 @@
                     <button
                         id="cancel-form-btn"
                         type="button"
-                        class="secondary-btn"
-                    >
+                        class="secondary-btn">
                         Cancel
                     </button>
 
                     <button
                         type="submit"
-                        class="primary-btn"
-                    >
+                        class="primary-btn">
                         Save Student
                     </button>
 
@@ -357,8 +360,10 @@
     </div>
 
 
+
     <!-- =========================================================
          FIREBASE
+         IMPORTANT: CONFIG MUST COME AFTER FIREBASE SDK
          ========================================================= -->
 
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -366,12 +371,13 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
 
-    <!-- PROJECT FILES -->
-
+    <!-- Firebase configuration -->
     <script src="../js/firebase-config.js"></script>
 
+    <!-- Layout engine -->
     <script src="../js/layout.js"></script>
 
+    <!-- Student CRUD engine -->
     <script src="../js/students.js"></script>
 
 </body>
