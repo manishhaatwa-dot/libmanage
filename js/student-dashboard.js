@@ -621,241 +621,349 @@ function clearAttendanceRecordListeners() {
 
 }
 
-
 /**
  * ==========================================================================
  * STUDENT ATTENDANCE REALTIME
  *
- * DIRECT STUDENT RECORD LOADER
+ * DIRECT DATE CHECK SYSTEM
  *
  * FIRESTORE:
  * saas_libraries/{libraryId}/attendance/{YYYY-MM-DD}/records/{studentCode}
  *
- * STUDENT SIDE:
- * READ ONLY
+ * IMPORTANT:
+ * Attendance collection listing is NOT used because only "anchor"
+ * is returned by the collection read.
+ *
+ * We directly check each date and read the logged-in student's record.
  * ==========================================================================
  */
 
 function attachStudentAttendanceRealtimeListener(db) {
 
+    /*
+     * Existing attendance date listener cleanup.
+     */
     if (unsubscribeAttendanceDatesRef) {
 
         unsubscribeAttendanceDatesRef();
+
         unsubscribeAttendanceDatesRef = null;
 
     }
 
+
+    /*
+     * Existing individual record listeners cleanup.
+     */
     clearAttendanceRecordListeners();
 
+
+    /*
+     * Start with empty attendance map.
+     */
     studentAttendanceMap = {};
 
     renderAttendanceSummary();
     renderAttendanceCalendar();
 
 
-    const attendanceDatesRef =
-        db
-            .collection('saas_libraries')
-            .doc(currentStudentLibraryId)
-            .collection('attendance');
+    /*
+     * --------------------------------------------------------------
+     * LOAD CURRENT MONTH
+     * --------------------------------------------------------------
+     */
+
+    async function loadAttendanceForCurrentMonth() {
+
+        const year =
+            attendanceMonthCursor.getFullYear();
+
+        const monthIndex =
+            attendanceMonthCursor.getMonth();
+
+
+        /*
+         * Number of days in current month.
+         */
+        const daysInMonth =
+            new Date(
+                year,
+                monthIndex + 1,
+                0
+            ).getDate();
+
+
+        /*
+         * Fresh map for current month.
+         */
+        const monthAttendanceMap = {};
+
+
+        /*
+         * Check every date directly.
+         *
+         * Example:
+         *
+         * attendance/2026-08-08/records/4DNL-E25-628
+         */
+
+        const dateChecks = [];
+
+
+        for (
+            let day = 1;
+            day <= daysInMonth;
+            day++
+        ) {
+
+            const dateId =
+                formatDateIdFromParts(
+                    year,
+                    monthIndex,
+                    day
+                );
+
+
+            dateChecks.push(
+
+                (async () => {
+
+                    try {
+
+                        const recordDoc =
+                            await db
+                                .collection(
+                                    'saas_libraries'
+                                )
+                                .doc(
+                                    currentStudentLibraryId
+                                )
+                                .collection(
+                                    'attendance'
+                                )
+                                .doc(
+                                    dateId
+                                )
+                                .collection(
+                                    'records'
+                                )
+                                .doc(
+                                    currentStudentCode
+                                )
+                                .get();
+
+
+                        /*
+                         * No record for this date.
+                         */
+                        if (!recordDoc.exists) {
+                            return;
+                        }
+
+
+                        const data =
+                            recordDoc.data() ||
+                            {};
+
+
+                        /*
+                         * Safety check:
+                         * Make sure record belongs to
+                         * currently logged-in student.
+                         */
+
+                        const recordStudentCode =
+                            String(
+                                data.studentCode ||
+                                currentStudentCode
+                            );
+
+
+                        if (
+                            recordStudentCode !==
+                            String(
+                                currentStudentCode
+                            )
+                        ) {
+
+                            return;
+
+                        }
+
+
+                        const normalizedStatus =
+                            normalizeAttendanceStatus(
+                                data.status || ''
+                            );
+
+
+                        /*
+                         * Only Present / Absent records
+                         * are stored in dashboard map.
+                         */
+
+                        if (!normalizedStatus) {
+                            return;
+                        }
+
+
+                        monthAttendanceMap[
+                            dateId
+                        ] = {
+
+                            dateId:
+                                dateId,
+
+                            studentCode:
+                                recordStudentCode,
+
+                            name:
+                                data.name ||
+                                '',
+
+                            seatNumber:
+                                data.seatNumber ||
+                                '',
+
+                            shift:
+                                data.shift ||
+                                '',
+
+                            status:
+                                normalizedStatus,
+
+                            date:
+                                data.date ||
+                                dateId
+
+                        };
+
+
+                    } catch (error) {
+
+                        console.error(
+                            `[Student Attendance Direct Read Error - ${dateId}]:`,
+                            error
+                        );
+
+                    }
+
+                })()
+
+            );
+
+        }
+
+
+        /*
+         * Wait until all dates have been checked.
+         */
+
+        await Promise.all(
+            dateChecks
+        );
+
+
+        /*
+         * Put loaded attendance into global map.
+         */
+
+        studentAttendanceMap =
+            monthAttendanceMap;
+
+
+        console.log(
+            '[Student Dashboard] Attendance Loaded:',
+            studentAttendanceMap
+        );
+
+
+        /*
+         * Update dashboard.
+         */
+
+        renderAttendanceSummary();
+
+        renderAttendanceCalendar();
+
+    }
 
 
     /*
-     * Listen only to attendance DATE documents.
+     * --------------------------------------------------------------
+     * INITIAL MONTH LOAD
+     * --------------------------------------------------------------
+     */
+
+    loadAttendanceForCurrentMonth();
+
+
+    /*
+     * --------------------------------------------------------------
+     * MONTH CHANGE SUPPORT
+     *
+     * We watch the calendar cursor.
+     *
+     * Existing calendar buttons change attendanceMonthCursor,
+     * then this listener detects the new month when the calendar
+     * is rendered.
+     * --------------------------------------------------------------
+     */
+
+    let lastLoadedMonth =
+        `${attendanceMonthCursor.getFullYear()}-${attendanceMonthCursor.getMonth()}`;
+
+
+    const originalRenderAttendanceCalendar =
+        window.renderAttendanceCalendar;
+
+
+    /*
+     * We don't replace the existing renderer.
+     * Instead, observe month navigation periodically.
+     */
+
+    const monthWatcher =
+        setInterval(
+            () => {
+
+                const currentMonth =
+                    `${attendanceMonthCursor.getFullYear()}-${attendanceMonthCursor.getMonth()}`;
+
+
+                if (
+                    currentMonth ===
+                    lastLoadedMonth
+                ) {
+
+                    return;
+
+                }
+
+
+                lastLoadedMonth =
+                    currentMonth;
+
+
+                loadAttendanceForCurrentMonth();
+
+            },
+            300
+        );
+
+
+    /*
+     * Store cleanup function.
      */
 
     unsubscribeAttendanceDatesRef =
-        attendanceDatesRef.onSnapshot(
+        () => {
 
-            async (snapshot) => {
+            clearInterval(
+                monthWatcher
+            );
 
-                const nextAttendanceMap = {};
-
-                /*
-                 * Get all valid attendance dates.
-                 */
-
-                const dateIds = [];
-
-                snapshot.forEach((doc) => {
-
-                    if (!doc.exists) {
-                        return;
-                    }
-
-                    if (
-                        !isValidDateDocumentId(doc.id)
-                    ) {
-                        return;
-                    }
-
-                    dateIds.push(doc.id);
-
-                });
-
-
-                /*
-                 * No attendance dates.
-                 */
-
-                if (!dateIds.length) {
-
-                    studentAttendanceMap = {};
-
-                    renderAttendanceSummary();
-                    renderAttendanceCalendar();
-
-                    return;
-                }
-
-
-                /*
-                 * Read EXACT current student's record
-                 * from every attendance date.
-                 */
-
-                try {
-
-                    await Promise.all(
-
-                        dateIds.map(
-                            async (dateDocId) => {
-
-                                try {
-
-                                    const recordDoc =
-                                        await attendanceDatesRef
-                                            .doc(dateDocId)
-                                            .collection('records')
-                                            .doc(currentStudentCode)
-                                            .get();
-
-
-                                    if (
-                                        !recordDoc.exists
-                                    ) {
-
-                                        return;
-
-                                    }
-
-
-                                    const data =
-                                        recordDoc.data() ||
-                                        {};
-
-
-                                    /*
-                                     * Store only if this is
-                                     * actually the logged-in student.
-                                     */
-
-                                    const recordStudentCode =
-                                        String(
-                                            data.studentCode ||
-                                            currentStudentCode
-                                        );
-
-
-                                    if (
-                                        recordStudentCode !==
-                                        String(
-                                            currentStudentCode
-                                        )
-                                    ) {
-
-                                        return;
-
-                                    }
-
-
-                                    nextAttendanceMap[
-                                        dateDocId
-                                    ] = {
-
-                                        dateId:
-                                            dateDocId,
-
-                                        studentCode:
-                                            recordStudentCode,
-
-                                        name:
-                                            data.name ||
-                                            '',
-
-                                        seatNumber:
-                                            data.seatNumber ||
-                                            '',
-
-                                        shift:
-                                            data.shift ||
-                                            '',
-
-                                        status:
-                                            normalizeAttendanceStatus(
-                                                data.status ||
-                                                ''
-                                            )
-
-                                    };
-
-                                } catch (recordError) {
-
-                                    console.error(
-                                        `[Student Attendance Record Read Error - ${dateDocId}]:`,
-                                        recordError
-                                    );
-
-                                }
-
-                            }
-                        )
-
-                    );
-
-
-                    /*
-                     * IMPORTANT:
-                     * Put the completed data into the
-                     * global dashboard map.
-                     */
-
-                    studentAttendanceMap = {
-                        ...nextAttendanceMap
-                    };
-
-
-                    console.log(
-                        '[Student Dashboard] Attendance Map Updated:',
-                        studentAttendanceMap
-                    );
-
-
-                    renderAttendanceSummary();
-
-                    renderAttendanceCalendar();
-
-
-                } catch (error) {
-
-                    console.error(
-                        '[Student Dashboard Attendance Loading Error]:',
-                        error
-                    );
-
-                }
-
-            },
-
-            (error) => {
-
-                console.error(
-                    '[Student Dashboard Attendance Dates Listener Error]:',
-                    error
-                );
-
-            }
-        );
+        };
 
 }
 /**
