@@ -2,6 +2,8 @@
  * ==========================================================================
  * LIBMANAGE SAAS ECOSYSTEM ENGINE - STUDENT CRUD & AUTOMATIC SUBCOLLECTION UID
  * MOBILE NUMBER SUPPORT ADDED
+ * DATE DISPLAY/FORM FORMAT = DD/MM/YYYY
+ * FIREBASE STORAGE FORMAT = YYYY-MM-DD
  * ==========================================================================
  */
 
@@ -257,6 +259,12 @@ function initializeStudentDirectoryModule() {
     }
 
 
+    /*
+     * DATE INPUT FORMATTER
+     */
+    bindDateFormatInputs();
+
+
     if (studentsUnsubscribeRef) {
 
         studentsUnsubscribeRef();
@@ -353,6 +361,170 @@ function initializeStudentDirectoryModule() {
 
 /**
  * ==========================================================================
+ * DATE FORMAT HELPERS
+ * ==========================================================================
+ */
+
+/*
+ * Firebase:
+ * YYYY-MM-DD
+ *
+ * Website:
+ * DD/MM/YYYY
+ */
+
+function formatDisplayDate(value) {
+
+    const dateString =
+        String(value == null ? '' : value).trim();
+
+    if (!dateString) {
+        return '';
+    }
+
+    const parts = dateString.split('-');
+
+    if (parts.length === 3) {
+
+        const year = parts[0];
+        const month = parts[1];
+        const day = parts[2];
+
+        if (
+            year.length === 4 &&
+            month.length >= 1 &&
+            day.length >= 1
+        ) {
+            return `${day.padStart(2, '0')}/${month.padStart(2, '0')}/${year}`;
+        }
+    }
+
+    return dateString;
+}
+
+
+/*
+ * Firebase YYYY-MM-DD
+ * -> Form DD/MM/YYYY
+ */
+
+function formatDateForForm(value) {
+
+    return formatDisplayDate(value);
+}
+
+
+/*
+ * Form DD/MM/YYYY
+ * -> Firebase YYYY-MM-DD
+ */
+
+function convertFormDateToFirebase(value) {
+
+    const dateString =
+        String(value == null ? '' : value).trim();
+
+    if (!dateString) {
+        return '';
+    }
+
+    const parts = dateString.split('/');
+
+    if (parts.length !== 3) {
+        return '';
+    }
+
+    const day = parts[0].padStart(2, '0');
+    const month = parts[1].padStart(2, '0');
+    const year = parts[2];
+
+    if (
+        year.length !== 4 ||
+        day.length !== 2 ||
+        month.length !== 2
+    ) {
+        return '';
+    }
+
+    return `${year}-${month}-${day}`;
+}
+
+
+/*
+ * Auto DD/MM/YYYY while typing
+ */
+
+function bindDateFormatInputs() {
+
+    const joiningInput =
+        document.getElementById('std-joining');
+
+    const expiryInput =
+        document.getElementById('std-expiry');
+
+
+    function formatTyping(event) {
+
+        let value =
+            event.target.value.replace(/\D/g, '');
+
+        if (value.length > 8) {
+            value = value.substring(0, 8);
+        }
+
+        if (value.length > 4) {
+
+            value =
+                value.substring(0, 2) +
+                '/' +
+                value.substring(2, 4) +
+                '/' +
+                value.substring(4);
+
+        } else if (value.length > 2) {
+
+            value =
+                value.substring(0, 2) +
+                '/' +
+                value.substring(2);
+
+        }
+
+        event.target.value = value;
+    }
+
+
+    if (joiningInput) {
+
+        joiningInput.removeEventListener(
+            'input',
+            formatTyping
+        );
+
+        joiningInput.addEventListener(
+            'input',
+            formatTyping
+        );
+    }
+
+
+    if (expiryInput) {
+
+        expiryInput.removeEventListener(
+            'input',
+            formatTyping
+        );
+
+        expiryInput.addEventListener(
+            'input',
+            formatTyping
+        );
+    }
+}
+
+
+/**
+ * ==========================================================================
  * OPEN STUDENT MODAL
  * ==========================================================================
  */
@@ -429,44 +601,6 @@ function safeUpper(value) {
     )
         .trim()
         .toUpperCase();
-}
-
-
-/**
- * ==========================================================================
- * DATE DISPLAY FORMAT
- * FIREBASE VALUE REMAINS YYYY-MM-DD
- * DISPLAY ONLY = DD/MM/YYYY
- * ==========================================================================
- */
-
-function formatDisplayDate(value) {
-
-    const dateString =
-        String(value == null ? '' : value).trim();
-
-    if (!dateString) {
-        return '';
-    }
-
-    const parts = dateString.split('-');
-
-    if (parts.length === 3) {
-
-        const year = parts[0];
-        const month = parts[1];
-        const day = parts[2];
-
-        if (
-            year.length === 4 &&
-            month.length >= 1 &&
-            day.length >= 1
-        ) {
-            return `${day.padStart(2, '0')}/${month.padStart(2, '0')}/${year}`;
-        }
-    }
-
-    return dateString;
 }
 
 
@@ -908,7 +1042,11 @@ async function commitStudentDirectoryMutationAction(
         ).trim();
 
 
-    const joiningDate =
+    /*
+     * FORM DATE = DD/MM/YYYY
+     * FIREBASE DATE = YYYY-MM-DD
+     */
+    const joiningDateForm =
         (
             document.getElementById(
                 'std-joining'
@@ -916,12 +1054,24 @@ async function commitStudentDirectoryMutationAction(
         ).trim();
 
 
-    const expiryDate =
+    const expiryDateForm =
         (
             document.getElementById(
                 'std-expiry'
             )?.value || ''
         ).trim();
+
+
+    const joiningDate =
+        convertFormDateToFirebase(
+            joiningDateForm
+        );
+
+
+    const expiryDate =
+        convertFormDateToFirebase(
+            expiryDateForm
+        );
 
 
     const status =
@@ -1102,6 +1252,10 @@ async function commitStudentDirectoryMutationAction(
         mobile:
             mobile,
 
+        /*
+         * FIREBASE FORMAT
+         * YYYY-MM-DD
+         */
         joiningDate:
             joiningDate,
 
@@ -1392,17 +1546,24 @@ async function routeProfileToEditPipeline(
     }
 
 
+    /*
+     * DATE RESTORED IN DD/MM/YYYY FORMAT
+     */
     if (joiningNode) {
 
         joiningNode.value =
-            existingStudent.joiningDate || '';
+            formatDateForForm(
+                existingStudent.joiningDate || ''
+            );
     }
 
 
     if (expiryNode) {
 
         expiryNode.value =
-            existingStudent.expiryDate || '';
+            formatDateForForm(
+                existingStudent.expiryDate || ''
+            );
     }
 
 
