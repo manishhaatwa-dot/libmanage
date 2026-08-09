@@ -44,6 +44,27 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
     /*
+     * STUDENT SESSION CHECK
+     *
+     * Student login saves:
+     * session_role = student
+     *
+     * IMPORTANT:
+     * Admin session is NOT accepted on this page.
+     */
+
+    if (
+        sessionStorage.getItem('session_role') !== 'student'
+    ) {
+
+        window.location.href =
+            '../index.html';
+
+        return;
+    }
+
+
+    /*
      * Student login session.
      *
      * KEEPING ORIGINAL SESSION STORAGE SYSTEM.
