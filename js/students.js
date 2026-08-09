@@ -315,6 +315,10 @@ function initializeStudentDirectoryModule() {
                         seatNumber:
                             data.seatNumber || '',
 
+                        /* MOBILE NUMBER ADDED */
+                        mobileNumber:
+                            data.mobileNumber || '',
+
                         joiningDate:
                             data.joiningDate || '',
 
@@ -853,6 +857,15 @@ async function commitStudentDirectoryMutationAction(
         );
 
 
+    /* MOBILE NUMBER ADDED */
+    const mobileNumber =
+        (
+            document.getElementById(
+                'std-mobile'
+            )?.value || ''
+        ).trim();
+
+
     const joiningDate =
         (
             document.getElementById(
@@ -1040,6 +1053,10 @@ async function commitStudentDirectoryMutationAction(
         seatNumber:
             seatNumber,
 
+        /* MOBILE NUMBER ADDED */
+        mobileNumber:
+            mobileNumber,
+
         joiningDate:
             joiningDate,
 
@@ -1144,6 +1161,10 @@ function executeStudentDirectorySearchFilter() {
                             student.fatherName,
                             student.studentClass,
                             student.seatNumber,
+
+                            /* MOBILE NUMBER ADDED */
+                            student.mobileNumber,
+
                             student.joiningDate,
                             student.expiryDate,
                             student.status,
@@ -1256,6 +1277,13 @@ async function routeProfileToEditPipeline(
         );
 
 
+    /* MOBILE NUMBER ADDED */
+    const mobileNode =
+        document.getElementById(
+            'std-mobile'
+        );
+
+
     const joiningNode =
         document.getElementById(
             'std-joining'
@@ -1305,6 +1333,14 @@ async function routeProfileToEditPipeline(
 
         seatNode.value =
             existingStudent.seatNumber || '';
+    }
+
+
+    /* MOBILE NUMBER ADDED */
+    if (mobileNode) {
+
+        mobileNode.value =
+            existingStudent.mobileNumber || '';
     }
 
 
