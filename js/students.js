@@ -1,7 +1,7 @@
 /**
  * ==========================================================================
  * LIBMANAGE SAAS ECOSYSTEM ENGINE - STUDENT CRUD & AUTOMATIC SUBCOLLECTION UID
- * COMPLETE REPLACEMENT students.js
+ * MOBILE NUMBER SUPPORT ADDED
  * ==========================================================================
  */
 
@@ -49,11 +49,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.error('[Layout Loader Error]:', error);
     }
 
-    /*
-     * IMPORTANT:
-     * Firebase SDK/config may need a moment to initialize after reload.
-     * Therefore we wait for Firebase + window.db before starting students module.
-     */
     waitForFirebaseAndInitialize();
 });
 
@@ -103,12 +98,10 @@ function waitForFirebaseAndInitialize() {
                 '[Firebase Bootstrap Timeout]: Firebase/Firestore was not ready.',
                 {
                     firebaseExists: firebaseAvailable,
-
                     firebaseApps:
                         firebaseAvailable && firebase.apps
                             ? firebase.apps.length
                             : 0,
-
                     dbExists: firestoreReady
                 }
             );
@@ -315,9 +308,11 @@ function initializeStudentDirectoryModule() {
                         seatNumber:
                             data.seatNumber || '',
 
-                        /* MOBILE NUMBER ADDED */
-                        mobileNumber:
-                            data.mobileNumber || '',
+                        /*
+                         * MOBILE NUMBER
+                         */
+                        mobile:
+                            data.mobile || '',
 
                         joiningDate:
                             data.joiningDate || '',
@@ -857,8 +852,10 @@ async function commitStudentDirectoryMutationAction(
         );
 
 
-    /* MOBILE NUMBER ADDED */
-    const mobileNumber =
+    /*
+     * MOBILE NUMBER
+     */
+    const mobile =
         (
             document.getElementById(
                 'std-mobile'
@@ -913,6 +910,7 @@ async function commitStudentDirectoryMutationAction(
         !fatherName ||
         !studentClass ||
         !seatNumber ||
+        !mobile ||
         !joiningDate ||
         !expiryDate ||
         !status
@@ -1053,9 +1051,11 @@ async function commitStudentDirectoryMutationAction(
         seatNumber:
             seatNumber,
 
-        /* MOBILE NUMBER ADDED */
-        mobileNumber:
-            mobileNumber,
+        /*
+         * MOBILE NUMBER SAVED IN FIRESTORE
+         */
+        mobile:
+            mobile,
 
         joiningDate:
             joiningDate,
@@ -1162,8 +1162,10 @@ function executeStudentDirectorySearchFilter() {
                             student.studentClass,
                             student.seatNumber,
 
-                            /* MOBILE NUMBER ADDED */
-                            student.mobileNumber,
+                            /*
+                             * MOBILE SEARCH
+                             */
+                            student.mobile,
 
                             student.joiningDate,
                             student.expiryDate,
@@ -1277,7 +1279,6 @@ async function routeProfileToEditPipeline(
         );
 
 
-    /* MOBILE NUMBER ADDED */
     const mobileNode =
         document.getElementById(
             'std-mobile'
@@ -1336,11 +1337,13 @@ async function routeProfileToEditPipeline(
     }
 
 
-    /* MOBILE NUMBER ADDED */
+    /*
+     * MOBILE NUMBER RESTORED DURING EDIT
+     */
     if (mobileNode) {
 
         mobileNode.value =
-            existingStudent.mobileNumber || '';
+            existingStudent.mobile || '';
     }
 
 
