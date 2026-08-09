@@ -1,610 +1,430 @@
 /**
- * students.js
- * Improved version without changing architecture, IDs, login flow,
- * sessionStorage keys, Firestore structure, or dashboard workflow.
+ * ==========================================================================
+ * LIBMANAGE SAAS ECOSYSTEM ENGINE - STUDENT CRUD & AUTOMATIC SUBCOLLECTION UID
+ * COMPLETE REPLACEMENT students.js
+ * ==========================================================================
  */
-
-document.addEventListener('DOMContentLoaded', async () => {
-    try {
-        if (sessionStorage.getItem('session_role') !== 'admin') {
-            window.location.href = "../index.html";
-            return;
-        }
-
-        await loadSaaSLayoutComponent('sidebar-container', '../components/sidebar.html', () => handleSidebarActivation());
-        await loadSaaSLayoutComponent('navbar-container', '../components/navbar.html', () => bindNavbarInteractions());
-        await loadSaaSLayoutComponent('footer-container', '../components/footer.html');
-
-        initializeStudentDirectoryModule();
-    } catch (error) {
-        console.error('[students.js bootstrap error]:', error);
-        alert('Unable to initialize student dashboard: ' + error.message);
-    }
-});
 
 let currentActiveBranchId = "";
 let localBranchStudentsArray = [];
+let studentsUnsubscribeRef = null;
+let isStudentDirectoryInitialized = false;
+
+document.addEventListener('DOMContentLoaded', async () => {
+    if (isStudentDirectoryInitialized) return;
+    isStudentDirectoryInitialized = true;
+
+    if (sessionStorage.getItem('session_role') !== 'admin') {
+        window.location.href = "../index.html";
+        return;
+    }
+
+    try {
+        await loadSaaSLayoutComponent('sidebar-container', '../components/sidebar.html', () => {
+            if (typeof handleSidebarActivation === 'function') handleSidebarActivation();
+        });
+        await loadSaaSLayoutComponent('navbar-container', '../components/navbar.html', () => {
+            if (typeof bindNavbarInteractions === 'function') bindNavbarInteractions();
+        });
+        await loadSaaSLayoutComponent('footer-container', '../components/footer.html');
+    } catch (error) {
+        console.error('[Layout Loader Error]:', error);
+    }
+
+    initializeStudentDirectoryModule();
+});
 
 function initializeStudentDirectoryModule() {
-    try {
-        currentActiveBranchId = sessionStorage.getItem('session_library_id');
+    currentActiveBranchId = sessionStorage.getItem('session_library_id');
+    const db = window.db;
 
-        const db = firebase.firestore();
-
-        const searchInput = document.getElementById('student-search-input');
-        const openModalBtn = document.getElementById('open-add-modal-btn');
-        const closeModalBtn = document.getElementById('close-modal-btn');
-        const cancelFormBtn = document.getElementById('cancel-form-btn');
-        const registrationForm = document.getElementById('student-form');
-        const modal = document.getElementById('student-modal');
-
-        if (searchInput) {
-            searchInput.addEventListener('input', executeStudentDirectorySearchFilter);
-        }
-
-        if (openModalBtn) {
-            openModalBtn.addEventListener('click', () => triggerStudentFormModalOpen(false));
-        }
-
-        if (closeModalBtn) {
-            closeModalBtn.addEventListener('click', triggerStudentFormModalClose);
-        }
-
-        if (cancelFormBtn) {
-            cancelFormBtn.addEventListener('click', triggerStudentFormModalClose);
-        }
-
-        if (registrationForm) {
-            registrationForm.addEventListener('submit', commitStudentDirectoryMutationAction);
-        }
-
-        if (modal) {
-            modal.addEventListener('click', (event) => {
-                if (event.target === modal) {
-                    triggerStudentFormModalClose();
-                }
-            });
-        }
-
-        document.addEventListener('keydown', (event) => {
-            const activeModal = document.getElementById('student-modal');
-            if (event.key === 'Escape' && activeModal && activeModal.classList.contains('active')) {
-                triggerStudentFormModalClose();
-            }
-        });
-
-        db.collection("saas_libraries")
-            .doc(currentActiveBranchId)
-            .collection("students")
-            .onSnapshot((snapshot) => {
-                try {
-                    localBranchStudentsArray = [];
-
-                    snapshot.forEach((doc) => {
-                        if (doc.id !== "anchor_node") {
-                            const data = doc.data() || {};
-                            localBranchStudentsArray.push({
-                                ...data,
-                                studentCode: data.studentCode || doc.id
-                            });
-                        }
-                    });
-
-                    paintStudentDirectoryTableGrid(localBranchStudentsArray);
-                } catch (snapshotRenderError) {
-                    console.error('[student snapshot render error]:', snapshotRenderError);
-                }
-            }, (error) => {
-                console.error("[Firestore Student Subcollection Snapshot Stream Fault Exception]:", error);
-                alert("Realtime student data stream failed: " + error.message);
-            });
-    } catch (error) {
-        console.error('[initializeStudentDirectoryModule error]:', error);
-        alert('Student module initialization failed: ' + error.message);
+    if (!currentActiveBranchId) {
+        alert('Session Error: Current library context is missing.');
+        return;
     }
+
+    if (!db) {
+        alert('Database Engine Offline: Unified cloud storage reference mapping missing.');
+        return;
+    }
+
+    const searchInput = document.getElementById('student-search-input');
+    const openModalBtn = document.getElementById('open-add-modal-btn');
+    const closeModalBtn = document.getElementById('close-modal-btn');
+    const cancelFormBtn = document.getElementById('cancel-form-btn');
+    const registrationForm = document.getElementById('student-form');
+    const modal = document.getElementById('student-modal');
+
+    if (searchInput) {
+        searchInput.removeEventListener('input', executeStudentDirectorySearchFilter);
+        searchInput.addEventListener('input', executeStudentDirectorySearchFilter);
+    }
+
+    if (openModalBtn) {
+        openModalBtn.removeEventListener('click', handleOpenAddStudentModal);
+        openModalBtn.addEventListener('click', handleOpenAddStudentModal);
+    }
+
+    if (closeModalBtn) {
+        closeModalBtn.removeEventListener('click', triggerStudentFormModalClose);
+        closeModalBtn.addEventListener('click', triggerStudentFormModalClose);
+    }
+
+    if (cancelFormBtn) {
+        cancelFormBtn.removeEventListener('click', triggerStudentFormModalClose);
+        cancelFormBtn.addEventListener('click', triggerStudentFormModalClose);
+    }
+
+    if (registrationForm) {
+        registrationForm.removeEventListener('submit', commitStudentDirectoryMutationAction);
+        registrationForm.addEventListener('submit', commitStudentDirectoryMutationAction);
+    }
+
+    if (modal) {
+        modal.removeEventListener('click', handleModalBackdropDismiss);
+        modal.addEventListener('click', handleModalBackdropDismiss);
+    }
+
+    if (studentsUnsubscribeRef) {
+        studentsUnsubscribeRef();
+        studentsUnsubscribeRef = null;
+    }
+
+    studentsUnsubscribeRef = db
+        .collection('saas_libraries')
+        .doc(currentActiveBranchId)
+        .collection('students')
+        .onSnapshot((snapshot) => {
+            localBranchStudentsArray = [];
+
+            snapshot.forEach((doc) => {
+                if (doc.id === 'anchor_node') return;
+
+                const data = doc.data() || {};
+                localBranchStudentsArray.push({
+                    studentCode: data.studentCode || doc.id,
+                    libraryId: data.libraryId || currentActiveBranchId,
+                    name: data.name || '',
+                    fatherName: data.fatherName || '',
+                    studentClass: data.studentClass || '',
+                    seatNumber: data.seatNumber || '',
+                    joiningDate: data.joiningDate || '',
+                    expiryDate: data.expiryDate || '',
+                    status: data.status || '',
+                    shift: data.shift || '',
+                    updatedAt: data.updatedAt || null
+                });
+            });
+
+            paintStudentDirectoryTableGrid(localBranchStudentsArray);
+        }, (error) => {
+            console.error('[Firestore Student Subcollection Snapshot Stream Fault Exception]:', error);
+            alert('Unable to load students in realtime. Please check Firestore permissions or connectivity.');
+        });
 }
 
-function getStudentStatusClass(status) {
-    const normalizedStatus = String(status || '').trim().toLowerCase();
+function handleOpenAddStudentModal() {
+    triggerStudentFormModalOpen(false);
+}
 
-    if (normalizedStatus === 'active') return 'status-active';
-    if (normalizedStatus === 'expired') return 'status-expired';
-    if (normalizedStatus === 'inactive') return 'status-inactive';
-    if (normalizedStatus === 'pending') return 'status-pending';
-
-    return 'status-default';
+function handleModalBackdropDismiss(event) {
+    if (event.target && event.target.id === 'student-modal') {
+        triggerStudentFormModalClose();
+    }
 }
 
 function escapeHtml(value) {
-    const text = String(value ?? '');
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
+    return String(value == null ? '' : value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#x27;');
+}
+
+function normalizeSearchText(value) {
+    return String(value == null ? '' : value).trim().toLowerCase();
+}
+
+function safeUpper(value) {
+    return String(value == null ? '' : value).trim().toUpperCase();
 }
 
 function paintStudentDirectoryTableGrid(dataset) {
-    try {
-        const tableBody = document.getElementById('students-table-rows');
-        if (!tableBody) return;
+    const tableBody = document.getElementById('students-table-rows');
+    if (!tableBody) return;
 
-        if (!Array.isArray(dataset) || dataset.length === 0) {
-            tableBody.innerHTML = `
-                <tr>
-                    <td colspan="9" class="table-empty">
-                        No student records found for this library branch.
-                    </td>
-                </tr>
-            `;
-            return;
-        }
-
-        tableBody.innerHTML = dataset.map((student) => {
-            const studentCode = escapeHtml(student.studentCode || '');
-            const seatNumber = escapeHtml((student.seatNumber || '').toString().toUpperCase());
-            const name = escapeHtml(student.name || '');
-            const fatherName = escapeHtml(student.fatherName || '');
-            const studentClass = escapeHtml(student.studentClass || '');
-            const shift = escapeHtml(student.shift || "");
-            const joiningDate = escapeHtml(student.joiningDate || '');
-            const expiryDate = escapeHtml(student.expiryDate || '');
-            const status = escapeHtml(student.status || 'Unknown');
-            const statusClass = getStudentStatusClass(student.status);
-
-            return `
-                <tr>
-                    <td>
-                        <span class="student-code-text">${studentCode}</span>
-                    </td>
-                    <td>
-                        <strong>${seatNumber}</strong>
-                    </td>
-                    <td>
-                        <strong>${name}</strong>
-                    </td>
-                    <td>${fatherName}</td>
-                    <td>
-                        <span class="student-class-badge">${studentClass}</span>
-                    </td>
-                    <td>${shift}</td>
-                    <td>${joiningDate}</td>
-                    <td>${expiryDate}</td>
-                    <td>
-                        <span class="status-tag ${statusClass}">${status}</span>
-                    </td>
-                    <td>
-                        <div class="actions-cell-wrapper">
-                            <button
-                                type="button"
-                                class="action-btn edit-btn"
-                                onclick="routeProfileToEditPipeline('${studentCode}')"
-                                title="Edit Student"
-                            >
-                                Edit
-                            </button>
-                            <button
-                                type="button"
-                                class="action-btn delete-btn"
-                                onclick="routeProfileToDeletePipeline('${studentCode}')"
-                                title="Delete Student"
-                            >
-                                Delete
-                            </button>
-                        </div>
-                    </td>
-                </tr>
-            `;
-        }).join('');
-    } catch (error) {
-        console.error('[paintStudentDirectoryTableGrid error]:', error);
-
-        const tableBody = document.getElementById('students-table-rows');
-        if (tableBody) {
-            tableBody.innerHTML = `
-                <tr>
-                    <td colspan="9" class="table-empty">
-                        Failed to render student records.
-                    </td>
-                </tr>
-            `;
-        }
+    if (!Array.isArray(dataset) || dataset.length === 0) {
+        tableBody.innerHTML = '<tr><td colspan="9" class="table-empty" style="text-align:center; padding:2rem; font-style:italic; color:var(--text-muted);">No student records registered under this library branch subcollection database mapping path.</td></tr>';
+        return;
     }
-}
 
-function resetStudentFormFields() {
-    try {
-        const form = document.getElementById('student-form');
-        if (form) form.reset();
+    tableBody.innerHTML = dataset.map((student) => {
+        const studentCode = escapeHtml(student.studentCode || '');
+        const seatNumber = escapeHtml(safeUpper(student.seatNumber || ''));
+        const name = escapeHtml(student.name || '');
+        const fatherName = escapeHtml(student.fatherName || '');
+        const studentClass = escapeHtml(student.studentClass || '');
+        const joiningDate = escapeHtml(student.joiningDate || '');
+        const expiryDate = escapeHtml(student.expiryDate || '');
+        const status = escapeHtml(student.status || '');
+        const safeStudentCodeAttr = encodeURIComponent(student.studentCode || '');
+        const tagStatusHueClass = String(student.status || '').toLowerCase() === 'active' ? 'active' : 'expired';
 
-        const formEditIndex = document.getElementById('form-edit-index');
-        const formStudentCode = document.getElementById('form-student-code');
-        const modalTitle = document.getElementById('modal-title-context');
-        const displayCodeBlock = document.getElementById('modal-code-display-block');
-        const displayCodeLabel = document.getElementById('lbl-display-unique-token');
-
-        if (formEditIndex) formEditIndex.value = "";
-        if (formStudentCode) formStudentCode.value = "";
-        if (modalTitle) modalTitle.innerText = "Register New Library Member";
-        if (displayCodeBlock) displayCodeBlock.classList.add('hide-element');
-        if (displayCodeLabel) displayCodeLabel.innerText = "";
-    } catch (error) {
-        console.error('[resetStudentFormFields error]:', error);
-    }
+        return `
+            <tr>
+                <td><code style="font-weight:700; color:var(--primary-color); font-size:0.9rem;">${studentCode || 'N/A'}</code></td>
+                <td><strong>${seatNumber || 'N/A'}</strong></td>
+                <td><strong>${name || 'N/A'}</strong></td>
+                <td>${fatherName || 'N/A'}</td>
+                <td><span style="background:rgba(0,0,0,0.03); padding:0.2rem 0.4rem; border-radius:4px; font-weight:500;">${studentClass || 'N/A'}</span></td>
+                <td>${joiningDate || 'N/A'}</td>
+                <td>${expiryDate || 'N/A'}</td>
+                <td><span class="status-tag ${tagStatusHueClass}">${status || 'N/A'}</span></td>
+                <td>
+                    <div class="actions-cell-wrapper">
+                        <button class="action-icon-btn edit-btn" data-student-code="${safeStudentCodeAttr}" onclick="routeProfileToEditPipeline(decodeURIComponent(this.dataset.studentCode))" title="Modify Profile Options">✏️</button>
+                        <button class="action-icon-btn delete-btn" data-student-code="${safeStudentCodeAttr}" onclick="routeProfileToDeletePipeline(decodeURIComponent(this.dataset.studentCode))" title="Purge Record completely">🗑️</button>
+                    </div>
+                </td>
+            </tr>
+        `;
+    }).join('');
 }
 
 function triggerStudentFormModalOpen(isEditMode = false) {
-    try {
-        const modal = document.getElementById('student-modal');
-        const titleNode = document.getElementById('modal-title-context');
-        const displayCodeBlock = document.getElementById('modal-code-display-block');
+    const modal = document.getElementById('student-modal');
+    const titleNode = document.getElementById('modal-title-context');
+    const displayCodeBlock = document.getElementById('modal-code-display-block');
+    const previewCodeNode = document.getElementById('modal-student-code-preview');
+    const form = document.getElementById('student-form');
+    const editIndexNode = document.getElementById('form-edit-index');
+    const studentCodeNode = document.getElementById('form-student-code');
+    const shiftNode = document.getElementById('std-shift');
 
-        if (!modal) return;
+    if (!modal || !form) return;
 
-        if (!isEditMode) {
-            resetStudentFormFields();
-        } else {
-            if (titleNode) titleNode.innerText = "Modify Member Registration Profile";
-            if (displayCodeBlock) displayCodeBlock.classList.remove('hide-element');
-        }
+    if (!isEditMode) {
+        form.reset();
 
-        modal.classList.add('active');
-        document.body.classList.add('modal-open');
+        if (editIndexNode) editIndexNode.value = '';
+        if (studentCodeNode) studentCodeNode.value = '';
+        if (shiftNode) shiftNode.value = '';
 
-        const firstInput =
-            document.getElementById('std-name') ||
-            document.querySelector('#student-form input, #student-form select, #student-form textarea');
-
-        if (firstInput) {
-            setTimeout(() => firstInput.focus(), 50);
-        }
-    } catch (error) {
-        console.error('[triggerStudentFormModalOpen error]:', error);
-        alert('Unable to open student form: ' + error.message);
+        if (titleNode) titleNode.innerText = 'Register New Library Member';
+        if (displayCodeBlock) displayCodeBlock.classList.add('hide-element');
+        if (previewCodeNode) previewCodeNode.innerText = '';
+    } else {
+        if (titleNode) titleNode.innerText = 'Modify Member Registration Profile';
+        if (displayCodeBlock) displayCodeBlock.classList.remove('hide-element');
     }
+
+    modal.classList.add('active');
 }
 
 function triggerStudentFormModalClose() {
-    try {
-        const modal = document.getElementById('student-modal');
-        if (!modal) return;
-
-        modal.classList.remove('active');
-        document.body.classList.remove('modal-open');
-    } catch (error) {
-        console.error('[triggerStudentFormModalClose error]:', error);
-        alert('Unable to close student form: ' + error.message);
-    }
-}
-
-async function generateNextStudentCode() {
-    try {
-        const numericIds = localBranchStudentsArray
-            .map((student) => String(student.studentCode || '').trim().toUpperCase())
-            .filter((code) => /^LIB\d+$/.test(code))
-            .map((code) => parseInt(code.replace('LIB', ''), 10))
-            .filter((num) => !isNaN(num));
-
-        let nextNumber = 1;
-
-        if (numericIds.length > 0) {
-            nextNumber = Math.max(...numericIds) + 1;
-        }
-
-        let nextCode = `LIB${String(nextNumber).padStart(3, '0')}`;
-
-        const db = firebase.firestore();
-
-        while (localBranchStudentsArray.some((student) => String(student.studentCode).toUpperCase() === nextCode)) {
-            nextNumber += 1;
-            nextCode = `LIB${String(nextNumber).padStart(3, '0')}`;
-        }
-console.log("Generated Code =>", nextCode);
-        const existingDoc = await db.collection("saas_libraries")
-            .doc(currentActiveBranchId)
-            .collection("students")
-            .doc(nextCode)
-            .get();
-
-        if (existingDoc.exists) {
-            let safeCounter = nextNumber;
-            let safeCode = nextCode;
-
-            do {
-                safeCounter += 1;
-                safeCode = `LIB${String(safeCounter).padStart(3, '0')}`;
-                const docCheck = await db.collection("saas_libraries")
-                    .doc(currentActiveBranchId)
-                    .collection("students")
-                    .doc(safeCode)
-                    .get();
-
-                if (!docCheck.exists) {
-                    return safeCode;
-                }
-            } while (true);
-        }
-console.log("Returning Code =>", nextCode);
-return nextCode;
-        
-    } catch (error) {
-        console.error('[generateNextStudentCode error]:', error);
-        throw error;
-    }
+    const modal = document.getElementById('student-modal');
+    if (modal) modal.classList.remove('active');
 }
 
 async function commitStudentDirectoryMutationAction(event) {
     event.preventDefault();
 
+    const db = window.db;
+    if (!db) {
+        alert('Database Engine Offline: Cloud transactions cannot process without active global mappings.');
+        return;
+    }
+
+    if (!currentActiveBranchId) {
+        alert('Session Error: Current library context is missing.');
+        return;
+    }
+
+    const editIndexRawValue = document.getElementById('form-edit-index')
+        ? document.getElementById('form-edit-index').value
+        : '';
+
+    const existingStudentCode = document.getElementById('form-student-code')
+        ? document.getElementById('form-student-code').value.trim()
+        : '';
+
+    const name = (document.getElementById('std-name')?.value || '').trim();
+    const fatherName = (document.getElementById('std-father')?.value || '').trim();
+    const studentClass = (document.getElementById('std-class')?.value || '').trim();
+    const seatNumber = safeUpper(document.getElementById('std-seat')?.value || '');
+    const joiningDate = (document.getElementById('std-joining')?.value || '').trim();
+    const expiryDate = (document.getElementById('std-expiry')?.value || '').trim();
+    const status = (document.getElementById('std-status')?.value || '').trim();
+    const shift = (document.getElementById('std-shift')?.value || '').trim();
+
+    if (!shift) {
+        alert('Validation Error: Please select a shift.');
+        return;
+    }
+
+    if (!name || !fatherName || !studentClass || !seatNumber || !joiningDate || !expiryDate || !status) {
+        alert('Validation Error: Please fill all required student fields.');
+        return;
+    }
+
+    const isSeatOccupiedConflict = localBranchStudentsArray.some((std) => {
+        if (!std) return false;
+        if (existingStudentCode !== '' && std.studentCode === existingStudentCode) return false;
+        return safeUpper(std.seatNumber) === seatNumber;
+    });
+
+    if (isSeatOccupiedConflict) {
+        alert(`Validation Conflict: Seat "${seatNumber}" is currently assigned to another active record within this library network cluster node.`);
+        return;
+    }
+
+    let finalStudentUniqueTokenCode = existingStudentCode;
+
+    if (editIndexRawValue === '') {
+        const shortLibraryKeySegment = String(currentActiveBranchId).replace('LIB-', '').substring(0, 4);
+        let generatedCode = '';
+        let collisionDetected = true;
+        let safetyCounter = 0;
+
+        while (collisionDetected && safetyCounter < 25) {
+            const randomEntropyString = Math.floor(100 + Math.random() * 900);
+            generatedCode = `${shortLibraryKeySegment}-${seatNumber}-${randomEntropyString}`.toUpperCase();
+            collisionDetected = localBranchStudentsArray.some((std) => std && std.studentCode === generatedCode);
+            safetyCounter++;
+        }
+
+        if (collisionDetected) {
+            alert('Unique Code Generation Error: Unable to generate a unique student code right now. Please try again.');
+            return;
+        }
+
+        finalStudentUniqueTokenCode = generatedCode;
+    }
+
+    const payloadStudentModel = {
+        studentCode: finalStudentUniqueTokenCode,
+        libraryId: currentActiveBranchId,
+        name: name,
+        fatherName: fatherName,
+        studentClass: studentClass,
+        seatNumber: seatNumber,
+        joiningDate: joiningDate,
+        expiryDate: expiryDate,
+        status: status,
+        shift: shift,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    };
+
     try {
-        const db = firebase.firestore();
-
-        const editIndexRawValue = document.getElementById('form-edit-index')?.value || "";
-        const existingStudentCode = document.getElementById('form-student-code')?.value || "";
-
-        const name = document.getElementById('std-name')?.value.trim() || "";
-        const fatherName = document.getElementById('std-father')?.value.trim() || "";
-        const studentClass = document.getElementById('std-class')?.value.trim() || "";
-        const shift = document.getElementById('std-shift')?.value || "";
-        const seatNumber = (document.getElementById('std-seat')?.value.trim() || "").toUpperCase();
-        const joiningDate = document.getElementById('std-joining')?.value || "";
-        const expiryDate = document.getElementById('std-expiry')?.value || "";
-        const status = document.getElementById('std-status')?.value || "";
-
-        if (!name || !fatherName || !studentClass || !seatNumber || !joiningDate || !expiryDate || !status) {
-            alert('Please fill all required student fields before saving.');
-            return;
-        }
-
-        // Validate Expired Membership Status
-        if (new Date(expiryDate) < new Date() && status === "Active") {
-            alert("Membership has already expired. Please change Status to 'Expired' or select a valid Expiry Date.");
-            return;
-        }
-
-        const isSeatOccupiedConflict = localBranchStudentsArray.some((std) => {
-            if (existingStudentCode !== "" && std.studentCode === existingStudentCode) return false;
-            return String(std.seatNumber || '').toUpperCase() === seatNumber;
-        });
-
-        if (isSeatOccupiedConflict) {
-            alert(`Validation Conflict: Seat "${seatNumber}" is already assigned to another student.`);
-            return;
-        }
-
-        // Validate Membership Dates
-        if (joiningDate > expiryDate) {
-            alert("Expiry Date cannot be earlier than Joining Date.");
-            return;
-        }
-
-        const isCreateMode = editIndexRawValue === "";
-        let finalStudentUniqueTokenCode = existingStudentCode;
-        const serverTimestamp = firebase.firestore.FieldValue.serverTimestamp();
-
-        if (isCreateMode) {
-            finalStudentUniqueTokenCode = await generateNextStudentCode();
-        }
-
-        const payloadStudentModel = {
-            studentCode: finalStudentUniqueTokenCode,
-            libraryId: currentActiveBranchId,
-            name: name,
-            fatherName: fatherName,
-            studentClass: studentClass,
-            shift: shift,
-            seatNumber: seatNumber,
-            joiningDate: joiningDate,
-            expiryDate: expiryDate,
-            status: status,
-            updatedAt: serverTimestamp
-        };
-
-        if (isCreateMode) {
-            payloadStudentModel.createdAt = serverTimestamp;
-        } else {
-            const existingRecord = localBranchStudentsArray.find(
-                (student) => student.studentCode === finalStudentUniqueTokenCode
-            );
-
-            if (existingRecord && existingRecord.createdAt) {
-                payloadStudentModel.createdAt = existingRecord.createdAt;
-            }
-        }
-
-        const studentRef = db.collection("saas_libraries")
+        await db
+            .collection('saas_libraries')
             .doc(currentActiveBranchId)
-            .collection("students")
-            .doc(finalStudentUniqueTokenCode);
+            .collection('students')
+            .doc(finalStudentUniqueTokenCode)
+            .set(payloadStudentModel);
 
-        if (isCreateMode) {
-            await studentRef.set(payloadStudentModel);
-        } else {
-            await studentRef.set(payloadStudentModel, { merge: true });
-        }
-
-        console.log(`[Firestore Transaction SUCCESS]: Written student profile document -> ${finalStudentUniqueTokenCode}`);
         triggerStudentFormModalClose();
     } catch (error) {
-        console.error("[Firestore Student Document Mutation Write Fault Error Exception]:", error);
-        alert("Cloud write operations failure exception caught inside registry transaction channels: " + error.message);
+        console.error('[Firestore Student Document Mutation Write Fault Error Exception]:', error);
+        alert(`Cloud write operations failure exception caught inside registry transaction channels: ${error.message}`);
     }
 }
 
-window.routeProfileToEditPipeline = function(studentCodeToken) {
-    try {
-        const profileObj = localBranchStudentsArray.find((student) => student.studentCode === studentCodeToken);
-        if (!profileObj) {
-            alert('Student profile not found for editing.');
-            return;
-        }
+function executeStudentDirectorySearchFilter() {
+    const searchInput = document.getElementById('student-search-input');
+    const rawKeyword = searchInput ? searchInput.value : '';
+    const keyword = normalizeSearchText(rawKeyword);
 
-        const formEditIndex = document.getElementById('form-edit-index');
-        const formStudentCode = document.getElementById('form-student-code');
-        const stdName = document.getElementById('std-name');
-        const stdFather = document.getElementById('std-father');
-        const stdClass = document.getElementById('std-class');
-        const stdShift = document.getElementById('std-shift');
-        const stdSeat = document.getElementById('std-seat');
-        const stdJoining = document.getElementById('std-joining');
-        const stdExpiry = document.getElementById('std-expiry');
-        const stdStatus = document.getElementById('std-status');
-        const displayTokenLabel = document.getElementById('lbl-display-unique-token');
-
-        if (formEditIndex) formEditIndex.value = "TRUE";
-        if (formStudentCode) formStudentCode.value = profileObj.studentCode || "";
-
-        if (stdName) stdName.value = profileObj.name || "";
-        if (stdFather) stdFather.value = profileObj.fatherName || "";
-        if (stdClass) stdClass.value = profileObj.studentClass || "";
-        if (stdShift) stdShift.value = profileObj.shift || "";
-        if (stdSeat) stdSeat.value = profileObj.seatNumber || "";
-        if (stdJoining) stdJoining.value = profileObj.joiningDate || "";
-        if (stdExpiry) stdExpiry.value = profileObj.expiryDate || "";
-        if (stdStatus) stdStatus.value = profileObj.status || "";
-
-        if (displayTokenLabel) {
-            displayTokenLabel.innerText = profileObj.studentCode || "";
-        }
-
-        triggerStudentFormModalOpen(true);
-    } catch (error) {
-        console.error('[routeProfileToEditPipeline error]:', error);
-        alert('Unable to load student profile for editing: ' + error.message);
+    if (!keyword) {
+        paintStudentDirectoryTableGrid(localBranchStudentsArray);
+        return;
     }
-};
 
-window.routeProfileToDeletePipeline = async function(studentCodeToken) {
+    const filteredArray = localBranchStudentsArray.filter((student) => {
+        const searchableString = normalizeSearchText([
+            student.studentCode,
+            student.name,
+            student.fatherName,
+            student.studentClass,
+            student.seatNumber,
+            student.joiningDate,
+            student.expiryDate,
+            student.status,
+            student.shift
+        ].join(' '));
+
+        return searchableString.includes(keyword);
+    });
+
+    paintStudentDirectoryTableGrid(filteredArray);
+}
+
+async function routeProfileToEditPipeline(studentCode) {
+    const existingStudent = localBranchStudentsArray.find((item) => item.studentCode === studentCode);
+
+    if (!existingStudent) {
+        alert('Unable to locate the selected student profile.');
+        return;
+    }
+
+    const editIndexNode = document.getElementById('form-edit-index');
+    const studentCodeNode = document.getElementById('form-student-code');
+    const previewCodeNode = document.getElementById('modal-student-code-preview');
+
+    if (editIndexNode) editIndexNode.value = 'EDIT_MODE_ACTIVE';
+    if (studentCodeNode) studentCodeNode.value = existingStudent.studentCode || '';
+    if (previewCodeNode) previewCodeNode.innerText = existingStudent.studentCode || '';
+
+    const nameNode = document.getElementById('std-name');
+    const fatherNode = document.getElementById('std-father');
+    const classNode = document.getElementById('std-class');
+    const seatNode = document.getElementById('std-seat');
+    const joiningNode = document.getElementById('std-joining');
+    const expiryNode = document.getElementById('std-expiry');
+    const statusNode = document.getElementById('std-status');
+    const shiftNode = document.getElementById('std-shift');
+
+    if (nameNode) nameNode.value = existingStudent.name || '';
+    if (fatherNode) fatherNode.value = existingStudent.fatherName || '';
+    if (classNode) classNode.value = existingStudent.studentClass || '';
+    if (seatNode) seatNode.value = existingStudent.seatNumber || '';
+    if (joiningNode) joiningNode.value = existingStudent.joiningDate || '';
+    if (expiryNode) expiryNode.value = existingStudent.expiryDate || '';
+    if (statusNode) statusNode.value = existingStudent.status || '';
+    if (shiftNode) shiftNode.value = existingStudent.shift || '';
+
+    triggerStudentFormModalOpen(true);
+}
+
+async function routeProfileToDeletePipeline(studentCode) {
+    const db = window.db;
+
+    if (!db) {
+        alert('Database Engine Offline: Cloud delete execution unavailable.');
+        return;
+    }
+
+    if (!currentActiveBranchId) {
+        alert('Session Error: Current library context is missing.');
+        return;
+    }
+
+    const confirmed = confirm(`Are you sure you want to delete student "${studentCode}" permanently?`);
+    if (!confirmed) return;
+
     try {
-        const db = firebase.firestore();
-
-        if (!studentCodeToken) {
-            alert('Invalid student code.');
-            return;
-        }
-
-        const isConfirmed = confirm(
-            `Are you sure you want to permanently delete student record "${studentCodeToken}"?`
-        );
-
-        if (!isConfirmed) return;
-
-        await db.collection("saas_libraries")
+        await db
+            .collection('saas_libraries')
             .doc(currentActiveBranchId)
-            .collection("students")
-            .doc(studentCodeToken)
+            .collection('students')
+            .doc(studentCode)
             .delete();
-
-        console.log(`[Firestore Transaction SUCCESS]: Purged student document from subcollection mapping registers -> ${studentCodeToken}`);
     } catch (error) {
-        console.error("[Firestore Student Delete Transaction Path Operation Fault Exception]:", error);
-        alert("Cloud write operations purge transaction failed: " + error.message);
-    }
-};
-
-function executeStudentDirectorySearchFilter(event) {
-    try {
-        const criterionTextInput = String(event?.target?.value || '').toLowerCase().trim();
-
-        if (criterionTextInput === "") {
-            paintStudentDirectoryTableGrid(localBranchStudentsArray);
-            return;
-        }
-
-        const filteredMatchOutputResultsArrayList = localBranchStudentsArray.filter((student) => {
-            const name = String(student.name || '').toLowerCase();
-            const fatherName = String(student.fatherName || '').toLowerCase();
-            const studentCode = String(student.studentCode || '').toLowerCase();
-            const seatNumber = String(student.seatNumber || '').toLowerCase();
-
-            return (
-                name.includes(criterionTextInput) ||
-                fatherName.includes(criterionTextInput) ||
-                studentCode.includes(criterionTextInput) ||
-                seatNumber.includes(criterionTextInput)
-            );
-        });
-
-        paintStudentDirectoryTableGrid(filteredMatchOutputResultsArrayList);
-    } catch (error) {
-        console.error('[executeStudentDirectorySearchFilter error]:', error);
+        console.error('[Firestore Student Record Delete Fault Exception]:', error);
+        alert(`Delete operation failed: ${error.message}`);
     }
 }
 
-function handleSidebarActivation() {
-    try {
-        const menuItems = document.querySelectorAll('.sidebar-menu .menu-item');
-        menuItems.forEach((item) => {
-            if (item.getAttribute('data-page') === 'students') {
-                item.classList.add('active');
-            } else {
-                item.classList.remove('active');
-            }
-        });
-    } catch (error) {
-        console.error('[handleSidebarActivation error]:', error);
-    }
-}
-
-function bindNavbarInteractions() {
-    try {
-        const toggleBtn = document.getElementById('sidebar-toggle');
-        const sidebarPanel = document.querySelector('.sidebar-panel');
-        const logoutBtn = document.getElementById('admin-logout-btn');
-        const activeRouteText = document.getElementById('nav-active-title');
-        const navLibraryName = document.getElementById('nav-library-name');
-
-        if (activeRouteText) {
-            activeRouteText.innerText = "Student Registry Records";
-        }
-
-        if (navLibraryName) {
-            navLibraryName.innerText = sessionStorage.getItem('session_library_name') || '';
-        }
-
-        if (toggleBtn && sidebarPanel) {
-            toggleBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                sidebarPanel.classList.toggle('open');
-            });
-
-            document.addEventListener('click', (e) => {
-                if (!sidebarPanel.contains(e.target) && !toggleBtn.contains(e.target)) {
-                    sidebarPanel.classList.remove('open');
-                }
-            });
-        }
-
-        if (logoutBtn) {
-            logoutBtn.addEventListener('click', () => {
-                try {
-                    sessionStorage.clear();
-                    window.location.href = "../index.html";
-                } catch (error) {
-                    console.error('[logout error]:', error);
-                    alert('Logout failed: ' + error.message);
-                }
-            });
-        }
-    } catch (error) {
-        console.error('[bindNavbarInteractions error]:', error);
-    }
-}
-
-async function loadSaaSLayoutComponent(containerId, componentUrl, callback = null) {
-    try {
-        const container = document.getElementById(containerId);
-        if (!container) return;
-
-        const response = await fetch(componentUrl);
-        if (!response.ok) {
-            throw new Error(`HTTP Fault status: ${response.status}`);
-        }
-
-        container.innerHTML = await response.text();
-
-        if (typeof callback === 'function') {
-            callback();
-        }
-    } catch (err) {
-        console.error("Component asset failure:", err);
-    }
-}
+window.routeProfileToEditPipeline = routeProfileToEditPipeline;
+window.routeProfileToDeletePipeline = routeProfileToDeletePipeline;
