@@ -111,27 +111,27 @@ function bindGatewayAuthPipelines() {
                  * Session remains active until explicit logout.
                  */
 
-                sessionStorage.setItem(
+                localStorage.setItem(
                     "session_role",
                     "student"
                 );
 
-                sessionStorage.setItem(
+                localStorage.setItem(
                     "session_student_code",
                     studentData.studentCode || studentCode
                 );
 
-                sessionStorage.setItem(
+            localStorage.setItem(
                     "session_student_seat",
                     studentData.seatNumber || ""
                 );
 
-                sessionStorage.setItem(
+                localStorage.setItem(
                     "session_library_id",
                     libraryId
                 );
 
-                sessionStorage.setItem(
+                localStorage.setItem(
                     "session_library_name",
                     libraryData.name || "Library"
                 );
