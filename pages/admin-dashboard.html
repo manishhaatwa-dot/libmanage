@@ -447,16 +447,16 @@
     <script>
         document.addEventListener("DOMContentLoaded", async () => {
 
-            if (sessionStorage.getItem("session_role") !== "admin") {
+            if (localStorage.getItem("session_role") !== "admin") {
                 window.location.href = "../index.html";
                 return;
             }
 
             const libraryName =
-                sessionStorage.getItem("session_library_name") || "Library";
+                localStorage.getItem("session_library_name") || "Library";
 
             const libraryId =
-                sessionStorage.getItem("session_library_id") || "--";
+                localStorage.getItem("session_library_id") || "--";
 
             const title =
                 document.getElementById("welcome-admin-title");
