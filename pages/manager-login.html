@@ -104,7 +104,7 @@ document.getElementById("manager-standalone-login-form").addEventListener("submi
 
         if (owner.email === email && owner.password === password) {
 
-            sessionStorage.setItem("session_role", "manager");
+            localStorage.setItem("session_role", "manager");
             window.location.href = "manager-dashboard.html";
 
         } else {
