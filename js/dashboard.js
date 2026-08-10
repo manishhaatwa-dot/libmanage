@@ -206,17 +206,17 @@ function bindGatewayAuthPipelines() {
                     return;
                 }
 
-                sessionStorage.setItem(
+                localStorage.setItem(
                     'session_role',
                     'admin'
                 );
 
-                sessionStorage.setItem(
+                localStorage.setItem(
                     'session_library_id',
                     libraryData.libraryId
                 );
 
-                sessionStorage.setItem(
+            localStorage.setItem(
                     'session_library_name',
                     libraryData.name
                 );
