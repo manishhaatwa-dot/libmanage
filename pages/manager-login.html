@@ -14,7 +14,11 @@
     <link rel="stylesheet" href="../css/style.css">
 </head>
 <body>
-
+<script>
+    if (localStorage.getItem("session_role") === "manager") {
+        window.location.href = "manager-dashboard.html";
+    }
+</script>
 <div class="gateway-container" style="margin:15vh auto;">
 
     <header class="gateway-header">
