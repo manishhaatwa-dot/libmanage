@@ -15,7 +15,7 @@ if (!db) {
 document.addEventListener("DOMContentLoaded", () => {
 
     // Session Check
-    if (sessionStorage.getItem("session_role") !== "manager") {
+    if (localStorage.getItem("session_role") !== "manager") {
         window.location.href = "../index.html";
         return;
     }
@@ -33,7 +33,7 @@ function initializeManagerDashboardEngine() {
     if (logoutBtn) {
         logoutBtn.addEventListener("click", () => {
 
-            sessionStorage.clear();
+            localStorage.clear();
             window.location.href = "../index.html";
 
         });
