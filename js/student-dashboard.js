@@ -54,7 +54,7 @@ document.addEventListener('DOMContentLoaded', async () => {
      */
 
     if (
-        sessionStorage.getItem('session_role') !== 'student'
+        localStorage.getItem('session_role') !== 'student'
     ) {
 
         window.location.href =
@@ -71,11 +71,11 @@ document.addEventListener('DOMContentLoaded', async () => {
      */
 
     currentStudentLibraryId =
-        sessionStorage.getItem('session_library_id') || '';
+        localStorage.getItem('session_library_id') || '';
 
     currentStudentCode =
-        sessionStorage.getItem('session_student_code') ||
-        sessionStorage.getItem('session_login_id') ||
+        localStorage.getItem('session_student_code') ||
+        localStorage.getItem('session_login_id') ||
         '';
 
 
