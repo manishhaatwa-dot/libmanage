@@ -72,6 +72,7 @@
 
 <!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
 <!-- Shared Firebase Core -->
@@ -79,54 +80,91 @@
 
 <script>
 
-const db = window.db;
+document
+    .getElementById("manager-standalone-login-form")
+    .addEventListener("submit", async (e) => {
 
-document.getElementById("manager-standalone-login-form").addEventListener("submit", async (e) => {
+        e.preventDefault();
 
-    e.preventDefault();
+        const email =
+            document
+                .getElementById("manager-email-input")
+                .value
+                .trim()
+                .toLowerCase();
 
-    const email = document.getElementById("manager-email-input").value.trim().toLowerCase();
-    const password = document.getElementById("manager-password-input").value.trim();
+        const password =
+            document
+                .getElementById("manager-password-input")
+                .value;
 
-    try {
-
-        const ownerDoc = await db.collection("saas_owner").doc("master").get();
-
-        if (!ownerDoc.exists) {
-
-            await db.collection("saas_owner").doc("master").set({
-                email: "manager@gmail.com",
-                password: "owner@99",
-                role: "super_manager"
-            });
-
-            alert("Default manager account created. Please login again.");
+        if (!email || !password) {
+            alert("Please enter Email and Password.");
             return;
         }
 
-        const owner = ownerDoc.data();
+        try {
 
-        if (owner.email === email && owner.password === password) {
+            const userCredential =
+                await firebase
+                    .auth()
+                    .signInWithEmailAndPassword(
+                        email,
+                        password
+                    );
 
-            localStorage.setItem("session_role", "manager");
-            window.location.href = "manager-dashboard.html";
+            const user =
+                userCredential.user;
 
-        } else {
+            /*
+             * Only the dedicated Manager Firebase Auth account
+             * is allowed to enter the Manager Console.
+             */
 
-            alert("Invalid Email or Password.");
+            if (
+                user.email.toLowerCase() !==
+                "mp36797@gmail.com"
+            ) {
+
+                await firebase
+                    .auth()
+                    .signOut();
+
+                alert(
+                    "Access Denied: This account is not authorized as Manager."
+                );
+
+                return;
+            }
+
+            /*
+             * Manager session
+             */
+
+            localStorage.setItem(
+                "session_role",
+                "manager"
+            );
+
+            window.location.href =
+                "manager-dashboard.html";
+
+        } catch (error) {
+
+            console.error(
+                "Manager Firebase Auth Login Error:",
+                error
+            );
+
+            alert(
+                "Login Failed: " +
+                error.message
+            );
 
         }
 
-    } catch (error) {
-
-        console.error("Manager Login Error:", error);
-        alert(error.message);
-
-    }
-
-});
+    });
 
 </script>
-
 </body>
 </html>
