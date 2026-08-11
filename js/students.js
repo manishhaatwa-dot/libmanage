@@ -134,7 +134,7 @@ function waitForFirebaseAndInitialize() {
 function initializeStudentDirectoryModule() {
 
     currentActiveBranchId =
-        sessionStorage.getItem('session_library_id');
+        localStorage.getItem('session_library_id');
 
     const db = window.db;
 
