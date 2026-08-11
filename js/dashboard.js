@@ -159,91 +159,139 @@ function bindGatewayAuthPipelines() {
         });
     }
 
-    if (adminForm) {
-        adminForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
+  if (adminForm) {
+    adminForm.addEventListener('submit', async (e) => {
 
-            const emailInput =
-                document.getElementById('admin-email')
-                    .value
-                    .trim()
-                    .toLowerCase();
+        e.preventDefault();
 
-            const passInput =
-                document.getElementById('admin-password').value;
+        const libraryIdInput =
+            document.getElementById('admin-library-id');
 
-            if (!db) {
-                alert("Database Engine Offline: Cloud storage hooks could not be fully initialized.");
+        const passwordInput =
+            document.getElementById('admin-password');
+
+        if (!libraryIdInput || !passwordInput) {
+            console.error(
+                "[Admin Login] Required login fields not found."
+            );
+            return;
+        }
+
+        const libraryId =
+            libraryIdInput.value
+                .trim()
+                .toUpperCase();
+
+        const passInput =
+            passwordInput.value;
+
+        if (!db) {
+            alert(
+                "Database Engine Offline: Cloud storage hooks could not be fully initialized."
+            );
+            return;
+        }
+
+        if (!libraryId || !passInput) {
+            alert(
+                "Please enter Library ID and Password."
+            );
+            return;
+        }
+
+        try {
+
+            const libraryDoc =
+                await db
+                    .collection("saas_libraries")
+                    .doc(libraryId)
+                    .get();
+
+            if (!libraryDoc.exists) {
+                alert(
+                    "Login Failed: Invalid Library ID or Password."
+                );
                 return;
             }
 
-            try {
-                const adminQuerySnapshot =
-                    await db
-                        .collection("saas_libraries")
-                        .where("adminEmail", "==", emailInput)
-                        .where("adminPass", "==", passInput)
-                        .get();
+            const libraryData =
+                libraryDoc.data();
 
-                if (adminQuerySnapshot.empty) {
-                    alert("Security Check Failed: Invalid Admin Email ID or Password context configuration.");
-                    return;
-                }
+            /*
+             * Existing Manager-created password
+             * is used for the current version.
+             *
+             * No Firestore structure is changed.
+             */
 
-                const targetLibraryDoc =
-                    adminQuerySnapshot.docs[0];
-
-                const libraryData =
-                    targetLibraryDoc.data();
-
-                if (libraryData.status !== "approved") {
-                    alert("Access Restricted: Your library request terminal state is currently: PENDING APPROVAL.");
-                    return;
-                }
-
-                if (!libraryData.enabled) {
-                    alert("Access Suspended: Your branch terminal access has been disabled by the owner. Clear cash dues to resume.");
-                    return;
-                }
-
-                localStorage.setItem(
-                    'session_role',
-                    'admin'
+            if (
+                String(libraryData.adminPass || "") !==
+                String(passInput)
+            ) {
+                alert(
+                    "Login Failed: Invalid Library ID or Password."
                 );
+                return;
+            }
 
-                localStorage.setItem(
-                    'session_library_id',
-                    libraryData.libraryId
+            if (
+                libraryData.status !==
+                "approved"
+            ) {
+                alert(
+                    "Access Restricted: Your library request terminal state is currently: PENDING APPROVAL."
                 );
+                return;
+            }
+
+            if (!libraryData.enabled) {
+                alert(
+                    "Access Suspended: Your branch terminal access has been disabled by the owner."
+                );
+                return;
+            }
+
+            /*
+             * ADMIN SESSION
+             */
 
             localStorage.setItem(
-                    'session_library_name',
-                    libraryData.name
-                );
+                "session_role",
+                "admin"
+            );
 
-                const pathPrefixModifier =
-                    window.location.pathname.includes('/pages/')
-                        ? ""
-                        : "pages/";
+            localStorage.setItem(
+                "session_library_id",
+                libraryData.libraryId || libraryId
+            );
 
-                window.location.href =
-                    `${pathPrefixModifier}admin-dashboard.html`;
+            localStorage.setItem(
+                "session_library_name",
+                libraryData.name || "Library"
+            );
 
-            } catch (error) {
-                console.error(
-                    "[Ecosystem Admin Auth Transaction Failure Logs Trace]:",
-                    error
-                );
+            const pathPrefixModifier =
+                window.location.pathname.includes('/pages/')
+                    ? ""
+                    : "pages/";
 
-                alert(
-                    "Cloud system synchronization failure exception occurred: " +
-                    error.message
-                );
-            }
-        });
-    }
+            window.location.href =
+                `${pathPrefixModifier}admin-dashboard.html`;
+
+        } catch (error) {
+
+            console.error(
+                "[Ecosystem Admin Login Error]:",
+                error
+            );
+
+            alert(
+                "Cloud system synchronization failure: " +
+                error.message
+            );
+        }
+    });
 }
-
 /**
  * Reusable Asynchronous UI Fragment Layout Engine Integration Layer
  */
