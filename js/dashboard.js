@@ -406,7 +406,7 @@ function initAdminNoticeModule() {
         window.db;
 
     const currentLibraryId =
-        sessionStorage.getItem("session_library_id");
+        localStorage.getItem("session_library_id");
 
     if (
         !addNoticeButton ||
