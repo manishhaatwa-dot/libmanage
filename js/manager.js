@@ -286,6 +286,28 @@ document.addEventListener(
  * Library Details / Edit Modal Engine
  */
 
+function formatManagerDate(dateValue) {
+
+    if (!dateValue) {
+        return "";
+    }
+
+    const parts =
+        String(dateValue).split("-");
+
+    if (parts.length !== 3) {
+        return dateValue;
+    }
+
+    return (
+        parts[2] +
+        "/" +
+        parts[1] +
+        "/" +
+        parts[0]
+    );
+
+}
 function getManagerLibraryById(libraryId) {
 
     return managerLibrariesCache.find(
