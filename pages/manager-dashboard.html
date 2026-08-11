@@ -89,7 +89,32 @@
                         <label for="lib-seats">Manual Seat Capacity *</label>
                         <input type="number" id="lib-seats" value="30" min="5" max="500" required>
                     </div>
+<div class="form-group">
+    <label for="lib-mobile">Library Mobile Number</label>
+    <input
+        type="tel"
+        id="lib-mobile"
+        placeholder="e.g. 9876543210"
+        inputmode="numeric"
+        maxlength="10"
+    >
+</div>
 
+<div class="form-group">
+    <label for="lib-joining-date">Joining Date</label>
+    <input
+        type="date"
+        id="lib-joining-date"
+    >
+</div>
+
+<div class="form-group">
+    <label for="lib-expiry-date">Expiry Date</label>
+    <input
+        type="date"
+        id="lib-expiry-date"
+    >
+</div>
                     <button type="submit" class="btn-mgr-submit">
                         Initialize Network Node
                     </button>
@@ -106,7 +131,17 @@
                 <p class="panel-subtitle">
                     Approve, Enable or Disable library branches.
                 </p>
+<div class="mgr-library-search-wrapper">
 
+    <input
+        type="search"
+        id="library-search-input"
+        class="mgr-library-search-input"
+        placeholder="Search Library Name, Library ID or Admin Email..."
+        autocomplete="off"
+    >
+
+</div>
                 <div class="mgr-table-scroll-wrapper">
 
                     <table class="mgr-data-table">
@@ -136,7 +171,175 @@
     </main>
 
 </div>
+<!-- =========================================================
+     LIBRARY DETAILS / EDIT MODAL
+     ========================================================= -->
 
+<div
+    id="library-modal-overlay"
+    class="mgr-modal-overlay"
+    aria-hidden="true"
+>
+
+    <div
+        class="mgr-library-modal glass"
+        role="dialog"
+        aria-modal="true"
+    >
+
+        <div class="mgr-library-modal-header">
+
+            <div>
+                <h2 id="library-modal-title">
+                    Library Details
+                </h2>
+
+                <p id="library-modal-subtitle">
+                    View and manage library information.
+                </p>
+            </div>
+
+            <button
+                type="button"
+                id="library-modal-close"
+                class="mgr-modal-close"
+            >
+                ×
+            </button>
+
+        </div>
+
+
+        <div class="mgr-library-modal-body">
+
+            <div class="form-group">
+                <label for="edit-library-id">
+                    Library ID
+                </label>
+
+                <input
+                    type="text"
+                    id="edit-library-id"
+                    readonly
+                >
+            </div>
+
+
+            <div class="form-group">
+                <label for="edit-library-name">
+                    Library Name
+                </label>
+
+                <input
+                    type="text"
+                    id="edit-library-name"
+                >
+            </div>
+
+
+            <div class="form-group">
+                <label for="edit-library-email">
+                    Admin Email
+                </label>
+
+                <input
+                    type="email"
+                    id="edit-library-email"
+                >
+            </div>
+
+
+            <div class="form-group">
+                <label for="edit-library-mobile">
+                    Mobile Number
+                </label>
+
+                <input
+                    type="tel"
+                    id="edit-library-mobile"
+                    inputmode="numeric"
+                    maxlength="10"
+                >
+            </div>
+
+
+            <div class="form-group">
+                <label for="edit-library-seats">
+                    Seat Capacity
+                </label>
+
+                <input
+                    type="number"
+                    id="edit-library-seats"
+                    min="5"
+                    max="500"
+                >
+            </div>
+
+
+            <div class="form-group">
+                <label for="edit-library-joining">
+                    Joining Date
+                </label>
+
+                <input
+                    type="date"
+                    id="edit-library-joining"
+                >
+            </div>
+
+
+            <div class="form-group">
+                <label for="edit-library-expiry">
+                    Expiry Date
+                </label>
+
+                <input
+                    type="date"
+                    id="edit-library-expiry"
+                >
+            </div>
+
+
+            <div class="form-group">
+                <label for="edit-library-password">
+                    New Admin Password
+                </label>
+
+                <input
+                    type="text"
+                    id="edit-library-password"
+                    placeholder="Leave blank to keep current password"
+                    autocomplete="new-password"
+                >
+            </div>
+
+        </div>
+
+
+        <div class="mgr-library-modal-footer">
+
+            <button
+                type="button"
+                id="library-modal-cancel"
+                class="btn-ops-toggle"
+            >
+                Cancel
+            </button>
+
+            <button
+                type="button"
+                id="library-modal-save"
+                class="btn-mgr-submit"
+            >
+                Save Changes
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
 <!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
