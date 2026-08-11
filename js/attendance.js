@@ -5,12 +5,12 @@ let attendanceStudents = [];
 let filteredAttendanceStudents = [];
 
 document.addEventListener("DOMContentLoaded", () => {
-    if (sessionStorage.getItem("session_role") !== "admin") {
+    if (localStorage.getItem("session_role") !== "admin") {
         window.location.href = "../index.html";
         return;
     }
 
-    currentActiveBranchId = sessionStorage.getItem("session_library_id");
+    currentActiveBranchId = localStorage.getItem("session_library_id");
 
     const today = new Date().toISOString().split("T")[0];
     document.getElementById("attendance-date").value = today;
