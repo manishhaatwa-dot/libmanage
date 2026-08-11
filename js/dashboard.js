@@ -298,7 +298,9 @@ async function loadSaaSLayoutComponent(
 document.addEventListener("click", (event) => {
 
     const logoutButton =
-        event.target.closest("#admin-logout-btn");
+        event.target.closest(
+            "#admin-logout-btn, #student-exit-btn"
+        );
 
     if (!logoutButton) {
         return;
