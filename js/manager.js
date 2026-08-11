@@ -47,6 +47,18 @@ function initializeManagerDashboardEngine() {
         );
     }
 
+    const libraryModalSave =
+    document.getElementById("library-modal-save");
+
+if (libraryModalSave) {
+
+    libraryModalSave.addEventListener(
+        "click",
+        saveLibraryChanges
+    );
+
+}
+
     // Live Libraries Listener
     db.collection("saas_libraries")
         .orderBy("createdAt", "desc")
@@ -62,6 +74,7 @@ function initializeManagerDashboardEngine() {
                 });
 
                 calculateAndPaintMetrics(libraries);
+                managerLibrariesCache = libraries;
                 renderLibrariesTableRegistryGrid(libraries);
 
             },
@@ -160,10 +173,16 @@ function renderLibrariesTableRegistryGrid(libraries) {
         return `
         <tr>
 
-            <td>
-                <strong>${lib.name}</strong><br>
-                <small>${lib.libraryId}</small>
-            </td>
+          <td>
+    <strong
+        class="mgr-library-name-link"
+        onclick="openLibraryDetailsModal('${lib.libraryId}')"
+    >
+        ${lib.name}
+    </strong>
+    <br>
+    <small>${lib.libraryId}</small>
+</td> 
 
             <td>${lib.adminEmail}</td>
 
@@ -177,6 +196,12 @@ function renderLibrariesTableRegistryGrid(libraries) {
             <td>
 
                 ${actionButton}
+               
+                <button
+    class="btn-ops-toggle btn-edit"
+    onclick="openLibraryEditModal('${lib.libraryId}')">
+    Edit
+</button>
 
                 <button
                     class="btn-ops-toggle btn-delete"
@@ -192,7 +217,264 @@ function renderLibrariesTableRegistryGrid(libraries) {
     }).join("");
 
 }
+/**
+ * Library Registry Search
+ */
+let managerLibrariesCache = [];
 
+function filterManagerLibraries() {
+
+    const searchInput =
+        document.getElementById("library-search-input");
+
+    if (!searchInput) return;
+
+    const searchTerm =
+        searchInput.value
+            .trim()
+            .toLowerCase();
+
+    if (!searchTerm) {
+
+        renderLibrariesTableRegistryGrid(
+            managerLibrariesCache
+        );
+
+        return;
+    }
+
+    const filteredLibraries =
+        managerLibrariesCache.filter((lib) => {
+
+            return (
+                String(lib.name || "")
+                    .toLowerCase()
+                    .includes(searchTerm) ||
+
+                String(lib.libraryId || "")
+                    .toLowerCase()
+                    .includes(searchTerm) ||
+
+                String(lib.adminEmail || "")
+                    .toLowerCase()
+                    .includes(searchTerm)
+            );
+
+        });
+
+    renderLibrariesTableRegistryGrid(
+        filteredLibraries
+    );
+}
+
+document.addEventListener(
+    "input",
+    (event) => {
+
+        if (
+            event.target &&
+            event.target.id ===
+                "library-search-input"
+        ) {
+            filterManagerLibraries();
+        }
+
+    }
+);
+
+/**
+ * Library Details / Edit Modal Engine
+ */
+
+function getManagerLibraryById(libraryId) {
+
+    return managerLibrariesCache.find(
+        lib => String(lib.libraryId) === String(libraryId)
+    );
+
+}
+
+
+function openLibraryDetailsModal(libraryId) {
+
+    const library =
+        getManagerLibraryById(libraryId);
+
+    if (!library) {
+        alert("Library details not found.");
+        return;
+    }
+
+    document.getElementById("library-modal-title").innerText =
+        "Library Details";
+
+    document.getElementById("library-modal-subtitle").innerText =
+        "View library information.";
+
+    document.getElementById("edit-library-id").value =
+        library.libraryId || "";
+
+    document.getElementById("edit-library-name").value =
+        library.name || "";
+
+    document.getElementById("edit-library-email").value =
+        library.adminEmail || "";
+
+    document.getElementById("edit-library-mobile").value =
+        library.mobile || "";
+
+    document.getElementById("edit-library-seats").value =
+        library.totalSeats || "";
+
+    document.getElementById("edit-library-joining").value =
+        library.joiningDate || "";
+
+    document.getElementById("edit-library-expiry").value =
+        library.expiryDate || "";
+
+    document.getElementById("edit-library-password").value =
+        "";
+
+    setLibraryModalReadOnly(true);
+
+    document.getElementById("library-modal-overlay")
+        .classList.add("active");
+
+    document.getElementById("library-modal-overlay")
+        .setAttribute("aria-hidden", "false");
+
+}
+
+
+function openLibraryEditModal(libraryId) {
+
+    const library =
+        getManagerLibraryById(libraryId);
+
+    if (!library) {
+        alert("Library details not found.");
+        return;
+    }
+
+    document.getElementById("library-modal-title").innerText =
+        "Edit Library";
+
+    document.getElementById("library-modal-subtitle").innerText =
+        "Update library details or reset the admin password.";
+
+    document.getElementById("edit-library-id").value =
+        library.libraryId || "";
+
+    document.getElementById("edit-library-name").value =
+        library.name || "";
+
+    document.getElementById("edit-library-email").value =
+        library.adminEmail || "";
+
+    document.getElementById("edit-library-mobile").value =
+        library.mobile || "";
+
+    document.getElementById("edit-library-seats").value =
+        library.totalSeats || "";
+
+    document.getElementById("edit-library-joining").value =
+        library.joiningDate || "";
+
+    document.getElementById("edit-library-expiry").value =
+        library.expiryDate || "";
+
+    document.getElementById("edit-library-password").value =
+        "";
+
+    setLibraryModalReadOnly(false);
+
+    document.getElementById("library-modal-overlay")
+        .classList.add("active");
+
+    document.getElementById("library-modal-overlay")
+        .setAttribute("aria-hidden", "false");
+
+}
+
+
+function setLibraryModalReadOnly(isReadOnly) {
+
+    const fields = [
+        "edit-library-name",
+        "edit-library-email",
+        "edit-library-mobile",
+        "edit-library-seats",
+        "edit-library-joining",
+        "edit-library-expiry",
+        "edit-library-password"
+    ];
+
+    fields.forEach((fieldId) => {
+
+        const field =
+            document.getElementById(fieldId);
+
+        if (field) {
+            field.disabled = isReadOnly;
+        }
+
+    });
+
+    const saveButton =
+        document.getElementById("library-modal-save");
+
+    if (saveButton) {
+        saveButton.style.display =
+            isReadOnly ? "none" : "block";
+    }
+
+}
+
+
+function closeLibraryModal() {
+
+    const overlay =
+        document.getElementById("library-modal-overlay");
+
+    if (!overlay) return;
+
+    overlay.classList.remove("active");
+
+    overlay.setAttribute(
+        "aria-hidden",
+        "true"
+    );
+
+}
+
+
+document.addEventListener(
+    "click",
+    (event) => {
+
+        if (
+            event.target.id ===
+            "library-modal-close"
+        ) {
+            closeLibraryModal();
+        }
+
+        if (
+            event.target.id ===
+            "library-modal-cancel"
+        ) {
+            closeLibraryModal();
+        }
+
+        if (
+            event.target.id ===
+            "library-modal-overlay"
+        ) {
+            closeLibraryModal();
+        }
+
+    }
+);
 /**
  * Update Library Status
  */
@@ -251,7 +533,115 @@ async function executeRegistryStatusMutator(libraryId, commandType) {
     }
 
 }
+/**
+ * Save Library Changes
+ */
+async function saveLibraryChanges() {
 
+    const libraryId =
+        document.getElementById("edit-library-id").value.trim();
+
+    const name =
+        document.getElementById("edit-library-name").value.trim();
+
+    const email =
+        document.getElementById("edit-library-email").value.trim().toLowerCase();
+
+    const mobile =
+        document.getElementById("edit-library-mobile").value.trim();
+
+    const totalSeats =
+        parseInt(
+            document.getElementById("edit-library-seats").value
+        );
+
+    const joiningDate =
+        document.getElementById("edit-library-joining").value;
+
+    const expiryDate =
+        document.getElementById("edit-library-expiry").value;
+
+    const newPassword =
+        document.getElementById("edit-library-password").value.trim();
+
+    if (!libraryId || !name || !email || !totalSeats) {
+
+        alert(
+            "Please complete the required library details."
+        );
+
+        return;
+    }
+
+    if (
+        joiningDate &&
+        expiryDate &&
+        expiryDate < joiningDate
+    ) {
+
+        alert(
+            "Expiry Date cannot be earlier than Joining Date."
+        );
+
+        return;
+    }
+
+    try {
+
+        const docRef =
+            db
+                .collection("saas_libraries")
+                .doc(libraryId);
+
+        const updateData = {
+
+            name: name,
+
+            adminEmail: email,
+
+            mobile: mobile,
+
+            totalSeats: totalSeats,
+
+            joiningDate: joiningDate,
+
+            expiryDate: expiryDate
+
+        };
+
+        if (newPassword) {
+
+            updateData.adminPass =
+                newPassword;
+
+        }
+
+        await docRef.update(
+            updateData
+        );
+
+        alert(
+            "Library details updated successfully."
+        );
+
+        closeLibraryModal();
+
+    }
+    catch (error) {
+
+        console.error(
+            "[Library Update Error]",
+            error
+        );
+
+        alert(
+            "Failed to update library: " +
+            error.message
+        );
+
+    }
+
+}
 /**
  * Create Library
  */
@@ -270,6 +660,14 @@ async function commitNewLibraryDeploymentAction(event) {
 
     const totalSeats =
         parseInt(document.getElementById("lib-seats").value);
+    const mobile =
+    document.getElementById("lib-mobile").value.trim();
+
+const joiningDate =
+    document.getElementById("lib-joining-date").value;
+
+const expiryDate =
+    document.getElementById("lib-expiry-date").value;
 
     try {
 
@@ -302,6 +700,10 @@ async function commitNewLibraryDeploymentAction(event) {
             adminPass: password,
 
             totalSeats,
+
+            mobile,
+            joiningDate,
+            expiryDate,
 
             status: "approved",
 
