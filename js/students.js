@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (isStudentDirectoryInitialized) return;
     isStudentDirectoryInitialized = true;
 
-    if (sessionStorage.getItem('session_role') !== 'admin') {
+    if (localStorage.getItem('session_role') !== 'admin') {
         window.location.href = "../index.html";
         return;
     }
