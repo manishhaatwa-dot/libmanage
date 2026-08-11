@@ -307,7 +307,7 @@ document.addEventListener("click", (event) => {
     localStorage.clear();
     sessionStorage.clear();
 
-    window.location.replace("../index.html");
+    window.location.href = "../index.html";
 
 });
 /**
