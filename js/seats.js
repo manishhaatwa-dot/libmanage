@@ -19,8 +19,8 @@
   var db = firebase.firestore();
 
   document.addEventListener("DOMContentLoaded", function () {
-    var role = sessionStorage.getItem("session_role");
-    var libraryId = sessionStorage.getItem("session_library_id");
+    var role = localStorage.getItem("session_role");
+    var libraryId = localStorage.getItem("session_library_id");
 
     var elements = {
       seatAlert: document.getElementById("seatAlert"),
