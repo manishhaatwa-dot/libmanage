@@ -123,3 +123,170 @@
 @media (max-width: 1024px) {
     .mgr-split-grid { grid-template-columns: 1fr; }
 }
+
+/* =========================================================
+   LIBRARY SEARCH
+   ========================================================= */
+
+.mgr-library-search-wrapper {
+    width: 100%;
+    margin: 1rem 0;
+}
+
+.mgr-library-search-input {
+    width: 100%;
+    padding: 0.8rem 1rem;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    border-radius: var(--radius-sm);
+    background: #ffffff;
+    color: var(--text-main);
+    font-size: 0.9rem;
+    outline: none;
+    transition: var(--transition-smooth);
+}
+
+.mgr-library-search-input:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05);
+}
+
+
+/* =========================================================
+   CLICKABLE LIBRARY NAME
+   ========================================================= */
+
+.mgr-library-name-link {
+    cursor: pointer;
+    color: var(--primary-color);
+}
+
+.mgr-library-name-link:hover {
+    text-decoration: underline;
+}
+
+
+/* =========================================================
+   LIBRARY MODAL
+   ========================================================= */
+
+.mgr-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    background: rgba(15, 23, 42, 0.55);
+    backdrop-filter: blur(4px);
+}
+
+.mgr-modal-overlay.active {
+    display: flex;
+}
+
+.mgr-library-modal {
+    width: 100%;
+    max-width: 650px;
+    max-height: 90vh;
+    overflow-y: auto;
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+}
+
+.mgr-library-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1.5rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.mgr-library-modal-header h2 {
+    margin: 0 0 0.35rem;
+    color: var(--text-main);
+}
+
+.mgr-library-modal-header p {
+    margin: 0;
+    font-size: 0.82rem;
+    color: var(--text-muted);
+}
+
+.mgr-modal-close {
+    border: none;
+    background: transparent;
+    font-size: 1.8rem;
+    line-height: 1;
+    cursor: pointer;
+    color: var(--text-muted);
+}
+
+.mgr-library-modal-body {
+    padding: 1.5rem;
+}
+
+.mgr-library-modal-body .form-group {
+    margin-bottom: 1rem;
+}
+
+.mgr-library-modal-body input {
+    width: 100%;
+}
+
+.mgr-library-modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    padding: 1.25rem 1.5rem;
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.mgr-library-modal-footer .btn-mgr-submit {
+    width: auto;
+    min-width: 150px;
+    margin-top: 0;
+}
+
+.mgr-library-modal-footer .btn-ops-toggle {
+    min-width: 90px;
+}
+
+
+/* =========================================================
+   EDIT BUTTON
+   ========================================================= */
+
+.btn-ops-toggle.btn-edit {
+    background: #2563eb;
+    color: #ffffff;
+}
+
+.btn-ops-toggle.btn-edit:hover {
+    background: #1d4ed8;
+}
+
+
+@media (max-width: 600px) {
+
+    .mgr-library-modal {
+        max-height: 94vh;
+    }
+
+    .mgr-library-modal-header,
+    .mgr-library-modal-body,
+    .mgr-library-modal-footer {
+        padding: 1rem;
+    }
+
+    .mgr-library-modal-footer {
+        flex-direction: column;
+    }
+
+    .mgr-library-modal-footer button {
+        width: 100%;
+    }
+
+}
