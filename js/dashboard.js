@@ -288,7 +288,28 @@ async function loadSaaSLayoutComponent(
         );
     }
 }
+/**
+ * ==========================================================================
+ * ADMIN / STUDENT LOGOUT
+ * ==========================================================================
+ * Navbar dynamically load hota hai, isliye event delegation use ki gayi hai.
+ */
 
+document.addEventListener("click", (event) => {
+
+    const logoutButton =
+        event.target.closest("#admin-logout-btn");
+
+    if (!logoutButton) {
+        return;
+    }
+
+    localStorage.clear();
+    sessionStorage.clear();
+
+    window.location.replace("../index.html");
+
+});
 /**
  * Admin Notice Module
  * Safe scope: only dashboard notice area affected
