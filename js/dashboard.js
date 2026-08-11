@@ -292,6 +292,7 @@ function bindGatewayAuthPipelines() {
         }
     });
 }
+}
 /**
  * Reusable Asynchronous UI Fragment Layout Engine Integration Layer
  */
